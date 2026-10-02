@@ -1,7 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { CommunityRoute } from '@/pages/community/CommunityRoute';
 import { LoginPage } from '@/pages/LoginPage';
-import { previewRoutes } from '@/pages/preview/previewRoutes';
 import { RestaurantRoute } from '@/pages/restaurant/RestaurantRoute';
 import { ResultsRoute } from '@/pages/results/ResultsRoute';
 import { SearchRoute } from '@/pages/search/SearchRoute';
@@ -41,5 +40,4 @@ export const router = createBrowserRouter([
       </RequireMember>
     ),
   },
-  ...previewRoutes,
 ]);
