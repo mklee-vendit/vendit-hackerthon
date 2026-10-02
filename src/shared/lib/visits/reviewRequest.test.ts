@@ -29,17 +29,47 @@ describe('kstDate', () => {
 });
 
 describe('pickReviewRequest', () => {
+  const OPENED = new Date('2026-10-02T04:00:00Z');
+
   test('없으면 null', () => {
-    expect(pickReviewRequest([])).toBeNull();
+    expect(pickReviewRequest([], OPENED)).toBeNull();
   });
 
   test('가장 최근에 누른 것 하나', () => {
-    const picked = pickReviewRequest([
-      row('a', '2026-10-01T03:00:00Z'),
-      row('b', '2026-10-02T03:00:00Z'),
-      row('c', '2026-10-01T09:00:00Z'),
-    ]);
+    const picked = pickReviewRequest(
+      [
+        row('a', '2026-10-01T03:00:00Z'),
+        row('b', '2026-10-02T03:00:00Z'),
+        row('c', '2026-10-01T09:00:00Z'),
+      ],
+      OPENED,
+    );
     expect(picked?.id).toBe('b');
+  });
+
+  // 길찾기를 누른 그 자리에서 토스트가 뜨면 안 된다 — 다음에 앱을 열 때 묻는다.
+  test('앱을 연 뒤에 누른 방문은 묻지 않는다', () => {
+    expect(
+      pickReviewRequest([row('a', '2026-10-02T05:00:00Z')], OPENED),
+    ).toBeNull();
+  });
+
+  test('연 시각 이전 것만 골라낸다', () => {
+    const picked = pickReviewRequest(
+      [row('old', '2026-10-02T03:00:00Z'), row('new', '2026-10-02T06:00:00Z')],
+      OPENED,
+    );
+    expect(picked?.id).toBe('old');
+  });
+
+  // PostgREST 는 `+00:00`, toISOString 은 `Z` 로 끝난다. 문자열로 견주면 '+' < 'Z' 라서
+  // 1분 전에 누른 방문도 "앱을 연 뒤" 로 잘못 읽힌다.
+  test('시간대 표기가 달라도 같은 기준으로 견준다', () => {
+    const picked = pickReviewRequest(
+      [row('a', '2026-10-02T03:59:00+00:00')],
+      new Date('2026-10-02T04:00:00.000Z'),
+    );
+    expect(picked?.id).toBe('a');
   });
 });
 

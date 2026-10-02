@@ -31,15 +31,25 @@ export function kstDate(instant: Date): string {
   return toKst(instant).toISOString().slice(0, 10);
 }
 
-/** 한 번에 하나만 묻는다 — 가장 최근에 누른 식당. */
+/**
+ * 한 번에 하나만 묻는다 — 가장 최근에 누른 식당.
+ *
+ * **`openedAt` 이후에 누른 방문은 묻지 않는다.** 2a 는 "로그인 직후 첫 화면" 이라서, 방금
+ * 길찾기를 누른 식당을 그 자리에서 되묻는 건 다른 화면이다. 그 방문은 다음에 앱을 열 때 묻는다.
+ *
+ * 시각은 **문자열이 아니라 숫자로** 견준다 — PostgREST 는 `+00:00` 로 주고 `toISOString()` 은
+ * `Z` 로 끝나서, 문자열 비교는 같은 시각도 엇갈린다(`'+' < 'Z'`).
+ */
 export function pickReviewRequest(
   rows: readonly PendingReviewRequest[],
+  openedAt: Date,
 ): PendingReviewRequest | null {
-  return rows.reduce<PendingReviewRequest | null>(
-    (latest, row) =>
-      latest === null || row.created_at > latest.created_at ? row : latest,
-    null,
-  );
+  const cutoff = openedAt.getTime();
+  return rows.reduce<PendingReviewRequest | null>((latest, row) => {
+    const at = Date.parse(row.created_at);
+    if (!Number.isFinite(at) || at >= cutoff) return latest;
+    return latest === null || at > Date.parse(latest.created_at) ? row : latest;
+  }, null);
 }
 
 const daysBetween = (from: string, to: string) =>
@@ -51,7 +61,8 @@ export function visitLabel(
   now: Date,
 ): string {
   const [, month, day] = request.visited_on.split('-').map(Number);
-  const weekday = WEEKDAY[new Date(`${request.visited_on}T00:00:00Z`).getUTCDay()];
+  const weekday =
+    WEEKDAY[new Date(`${request.visited_on}T00:00:00Z`).getUTCDay()];
   const meal =
     toKst(new Date(request.created_at)).getUTCHours() < DINNER_FROM_HOUR
       ? '점심'

@@ -85,6 +85,7 @@ type ResultsPageProps = {
   unmeasuredWalkCount?: number;
   onEditConditions?: () => void;
   onFirstReviewClick?: (restaurantId: string) => void;
+  onDirectionsClick?: (restaurantId: string) => void;
   onTabChange?: (tab: AppTab) => void;
 };
 
@@ -99,6 +100,7 @@ export function ResultsPage({
   unmeasuredWalkCount = 0,
   onEditConditions,
   onFirstReviewClick,
+  onDirectionsClick,
   onTabChange,
 }: ResultsPageProps) {
   const [restOpen, setRestOpen] = useState(false);
@@ -160,7 +162,12 @@ export function ResultsPage({
             </div>
             <div className="flex flex-col gap-3.5 px-5">
               {picks.map((r) => (
-                <TicketCard key={r.id} restaurant={r} highlighted />
+                <TicketCard
+                  key={r.id}
+                  restaurant={r}
+                  highlighted
+                  onDirectionsClick={() => onDirectionsClick?.(r.id)}
+                />
               ))}
             </div>
           </section>
@@ -178,7 +185,11 @@ export function ResultsPage({
             {restOpen ? (
               <div className="flex flex-col gap-3.5 pt-2.5">
                 {rest.map((r) => (
-                  <TicketCard key={r.id} restaurant={r} />
+                  <TicketCard
+                    key={r.id}
+                    restaurant={r}
+                    onDirectionsClick={() => onDirectionsClick?.(r.id)}
+                  />
                 ))}
               </div>
             ) : (
@@ -216,6 +227,7 @@ export function ResultsPage({
                   key={r.id}
                   restaurant={r}
                   onFirstReviewClick={() => onFirstReviewClick?.(r.id)}
+                  onDirectionsClick={() => onDirectionsClick?.(r.id)}
                 />
               ))}
             </div>

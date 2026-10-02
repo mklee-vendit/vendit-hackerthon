@@ -6,6 +6,7 @@ import { PROVISIONAL_RULES, recommend } from '@/shared/lib/recommend';
 import { useLatestReviews } from '@/shared/lib/restaurants/hooks';
 import { useCandidates } from '@/shared/lib/restaurants/useCandidates';
 import { criteriaToParams, parseCriteria } from '@/shared/lib/search/criteria';
+import { useRecordVisit } from '@/shared/lib/visits/hooks';
 import { toResultsViewModel } from './mapRecommendation';
 import { ResultsPage } from './ResultsPage';
 
@@ -28,6 +29,7 @@ export function ResultsRoute() {
   const userId =
     session.status === 'signedIn' ? session.session.user.id : undefined;
   const profile = useProfile(userId);
+  const recordVisit = useRecordVisit();
   const candidates = useCandidates();
 
   const parsed = parseCriteria(params);
@@ -110,6 +112,7 @@ export function ResultsRoute() {
       onFirstReviewClick={(restaurantId) =>
         navigate(`/restaurants/${restaurantId}`)
       }
+      onDirectionsClick={(restaurantId) => recordVisit.mutate(restaurantId)}
       onTabChange={(next) => next === 'community' && navigate('/community')}
     />
   );

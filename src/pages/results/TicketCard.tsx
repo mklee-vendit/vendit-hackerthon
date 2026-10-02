@@ -37,6 +37,8 @@ type TicketCardProps = {
   /** 추천픽은 순위 숫자를 브랜드색으로, 나머지는 본문색으로. */
   highlighted?: boolean;
   onFirstReviewClick?: () => void;
+  /** 길찾기를 누른 것을 방문으로 본다(2a 후기 요청의 근거). 링크는 그대로 열린다 */
+  onDirectionsClick?: () => void;
 };
 
 /**
@@ -50,6 +52,7 @@ export function TicketCard({
   restaurant: r,
   highlighted = false,
   onFirstReviewClick,
+  onDirectionsClick,
 }: TicketCardProps) {
   const unreviewed = r.reviewCount === 0;
 
@@ -111,6 +114,7 @@ export function TicketCard({
                 href={r.naverMap.url}
                 target="_blank"
                 rel="noreferrer"
+                onClick={onDirectionsClick}
                 // 가는 곳이 다르면 라벨도 달라야 한다 — 업체 페이지와 경로 화면은 다른 화면이다
                 aria-label={
                   r.naverMap.kind === 'place'

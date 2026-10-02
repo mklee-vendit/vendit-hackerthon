@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
+import { ReviewRequestToast } from '@/pages/reviewRequest/ReviewRequestToast';
 import { useProfile, useSession } from '@/shared/lib/auth';
 import { extractCause } from '@/shared/lib/extractCause';
 
@@ -41,5 +42,10 @@ export function RequireMember({ children }: { children: ReactNode }) {
   // 로그인은 됐지만 멤버가 아니다 — 로그인 화면이 사유를 보여준다.
   if (!profile.data) return <Navigate to="/login" replace />;
 
-  return children;
+  return (
+    <>
+      {children}
+      <ReviewRequestToast authorName={profile.data.display_name} />
+    </>
+  );
 }

@@ -5,6 +5,14 @@ import { type PendingReviewRequest, pickReviewRequest } from './reviewRequest';
 
 const REVIEW_REQUEST_KEY = ['review-request'];
 
+/**
+ * 이 앱을 연 시각. 토스트는 **이 시각 이전의 방문만** 묻는다.
+ *
+ * 구글 로그인은 앱으로 되돌아오며 페이지가 새로 로드되므로, 이 값이 사실상 로그인 시각이다.
+ * 모듈이 한 번만 평가되니 화면을 옮겨 다녀도 흔들리지 않는다.
+ */
+const OPENED_AT = new Date();
+
 /** 지금 물어볼 방문 하나. 없으면 null. */
 export function useReviewRequest() {
   return useSupabaseQuery(
@@ -14,7 +22,7 @@ export function useReviewRequest() {
         .from('pending_review_requests')
         .select('*')
         .returns<PendingReviewRequest[]>(),
-    { select: pickReviewRequest },
+    { select: (rows) => pickReviewRequest(rows, OPENED_AT) },
   );
 }
 
