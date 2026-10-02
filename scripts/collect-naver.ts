@@ -102,11 +102,18 @@ async function collect(r: Restaurant): Promise<Result> {
 
 // --sql-only: 수집은 건너뛰고 지금까지 모인 캐시로 SQL 만 만든다(수집 중 중간 반영용).
 const SQL_ONLY = process.argv.includes('--sql-only');
+// --shard 0/2: 목록을 나눠 프로세스 여러 개로 돈다. 캐시 파일이 식당별이라 서로 겹치지 않는다.
+const shardArg = process.argv.indexOf('--shard');
+const [SHARD, SHARDS] = (
+  shardArg === -1 ? '0/1' : process.argv[shardArg + 1]
+)
+  .split('/')
+  .map(Number);
 mkdirSync(CACHE, { recursive: true });
 let blocks = 0;
 for (const [i, r] of SQL_ONLY ? [] : restaurants.entries()) {
   const file = resolve(CACHE, `${r.kakao_place_id}.json`);
-  if (existsSync(file)) continue;
+  if (i % SHARDS !== SHARD || existsSync(file)) continue;
   try {
     writeFileSync(file, JSON.stringify(await collect(r)));
     blocks = 0;
