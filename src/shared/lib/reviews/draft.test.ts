@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import {
   emptyDraft,
+  filledMenu,
+  MENU_NAME_MAX,
   normalizedBody,
   REVIEW_BODY_MAX,
   type ReviewDraft,
@@ -14,6 +16,8 @@ const valid = (over: Partial<ReviewDraft> = {}): ReviewDraft => ({
   recommends: true,
   pricePerPerson: 9500,
   partySize: null,
+  menu: [],
+  photo: null,
   ...over,
 });
 
@@ -86,5 +90,43 @@ describe('normalizedBody / remainingChars', () => {
   test('남은 글자 수는 음수가 될 수 있다 — 넘긴 만큼 보여줘야 지울 수 있다', () => {
     expect(remainingChars('')).toBe(300);
     expect(remainingChars('가'.repeat(305))).toBe(-5);
+  });
+});
+
+describe('메뉴', () => {
+  test('안 적어도 된다 — 선택이다', () => {
+    expect(validateDraft(valid({ menu: [] }))).toEqual([]);
+  });
+
+  test('이름이 빈 줄은 안 적은 것으로 보고 저장하지 않는다', () => {
+    expect(filledMenu([{ name: '  ', price: null }])).toEqual([]);
+    expect(validateDraft(valid({ menu: [{ name: '', price: null }] }))).toEqual(
+      [],
+    );
+  });
+
+  test('이름을 적었으면 가격도 받는다 — 카드에 "메뉴 —원" 이 남지 않게', () => {
+    expect(
+      validateDraft(valid({ menu: [{ name: '버섯솥밥', price: null }] })),
+    ).toEqual(['menuPrice']);
+    expect(
+      validateDraft(valid({ menu: [{ name: '버섯솥밥', price: 9000 }] })),
+    ).toEqual([]);
+  });
+
+  test(`이름은 ${MENU_NAME_MAX}자까지`, () => {
+    expect(
+      validateDraft(
+        valid({
+          menu: [{ name: '가'.repeat(MENU_NAME_MAX + 1), price: 1000 }],
+        }),
+      ),
+    ).toEqual(['menuName']);
+  });
+
+  test('가격 0 은 허용한다 — 서비스로 받은 것도 사실이다', () => {
+    expect(
+      validateDraft(valid({ menu: [{ name: '누룽지', price: 0 }] })),
+    ).toEqual([]);
   });
 });

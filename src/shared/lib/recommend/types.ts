@@ -18,6 +18,13 @@ export type PriceStat = {
   median: number;
 };
 
+/** 메뉴 한 줄의 집계. 가격이 후기마다 다를 수 있어 같은 재료를 다 들고 있다. */
+export type MenuStat = {
+  name: string;
+  mentionCount: number;
+  prices: PriceStat;
+};
+
 /**
  * 판정에 들어가는 식당 한 곳. DB 의 `restaurants` + `restaurant_stats` +
  * `walk_times_valid` + `restaurant_diet_stats` 를 합친 모양이다.
@@ -39,6 +46,10 @@ export type Candidate = {
   /** 후기가 0개면 null. 후기가 있으면 1인 가격이 필수라 항상 있다(§3) */
   prices: PriceStat | null;
   dietTags: DietTagStat[];
+  /** 후기에 적힌 메뉴 집계. 언급이 많은 순이고, 어느 가격을 쓸지는 rules 가 고른다 */
+  menu: MenuStat[];
+  /** 버킷 안의 사진 경로. 없으면 null — 판정에는 쓰지 않고 화면에만 쓴다 */
+  photoPath: string | null;
 };
 
 export type SearchCriteria = {

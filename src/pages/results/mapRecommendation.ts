@@ -9,9 +9,11 @@ import {
   type SearchCriteria,
   type Unconfirmed,
 } from '@/shared/lib/recommend';
+import { photoPublicUrl } from '@/shared/lib/reviews/photoUrl';
 import type {
   FirstReviewItem,
   LatestReview,
+  MenuItem,
   RestaurantCardData,
   SearchConditions,
 } from './types';
@@ -42,6 +44,17 @@ export const BLOCK_LABEL: Record<BlockReason, string> = {
   diet: '식사 제약',
 };
 
+/** 카드에 보여줄 대표 메뉴. 몇 줄을 보여줄지와 어느 가격을 쓸지는 rules 가 정한다. */
+export function toMenuItems(
+  candidate: Candidate,
+  rules: RecommendRules,
+): MenuItem[] {
+  return candidate.menu.slice(0, rules.menuCount).map((item) => ({
+    name: item.name,
+    price: item.prices[rules.priceAggregate],
+  }));
+}
+
 export function toCardData(
   scored: Scored,
   rank: number,
@@ -62,10 +75,11 @@ export function toCardData(
       candidate.reviewCount,
     ),
     reviewCount: candidate.reviewCount,
-    // 사진·대표 메뉴는 아직 소스가 없다. **지어내지 않고 비워 둔다**(§10.2) — 목업이
-    // "사진 칸 없음 / 메뉴 —" 으로 퇴화를 그려 뒀다.
-    menu: [],
+    // 대표 메뉴는 후기에 적힌 것에서 쌓인다(§3 의 패턴). 아무도 안 적었으면 비어 있고,
+    // 목업이 "메뉴 —" 으로 그 상태를 그려 뒀다.
+    menu: toMenuItems(candidate, rules),
     unconfirmed: scored.unconfirmed.map((kind) => UNCONFIRMED_LABEL[kind]),
+    photoUrl: photoPublicUrl(candidate.photoPath),
     latestReview,
   };
 }
@@ -98,6 +112,7 @@ export function toUnreviewedCardData(candidate: Candidate): RestaurantCardData {
     reviewCount: 0,
     menu: [],
     unconfirmed: [],
+    photoUrl: photoPublicUrl(candidate.photoPath),
     latestReview: null,
   };
 }

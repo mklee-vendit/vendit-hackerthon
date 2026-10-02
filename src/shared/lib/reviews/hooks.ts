@@ -1,7 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useSupabaseMutation, useSupabaseQuery } from '@/shared/lib/query';
 import { supabase } from '@/shared/lib/supabase';
-import { normalizedBody, type ReviewDraft } from './draft';
+import { filledMenu, normalizedBody, type ReviewDraft } from './draft';
+import { photoPath, resizeToWebp } from './image';
 
 export type RestaurantDetailRow = {
   id: string;
@@ -65,30 +66,74 @@ export function useReviewFeed(restaurantId: string | undefined) {
   );
 }
 
+const PHOTO_BUCKET = 'review-photos';
+
 /**
- * 후기 쓰기. `author_id` 를 **보내지 않는다** — 컬럼 기본값 `auth.uid()` 가 채우고,
- * INSERT 권한도 없어서 위조할 수 없다(§10.8).
+ * 후기 쓰기.
  *
- * 성공하면 집계가 바뀌므로 식당 목록·상세·목록 캐시를 전부 무효화한다. 집계는 저장하지
- * 않고 후기에서 계산하므로, 다시 읽으면 반영돼 있다(§9).
+ * 후기와 메뉴는 **DB 함수 하나로 한 트랜잭션에서** 넣는다 — 둘로 나눠 보내면 후기만
+ * 저장되고 메뉴가 빠진 상태가 남는다. `author_id` 는 보내지 않는다(컬럼 기본값 auth.uid()
+ * 가 채우고 INSERT 권한도 없어 위조 불가 — §10.8).
+ *
+ * 사진은 **후기가 만들어진 뒤에** 올린다. 경로에 review_id 가 들어가고, 중간에 실패해도
+ * 후기는 남는다(사진 없는 후기는 정상 상태다). 반대로 먼저 올리면 후기 생성이 실패했을 때
+ * 아무 데도 연결되지 않은 파일이 남는다.
+ *
+ * 성공하면 집계가 바뀌므로 관련 캐시를 전부 무효화한다. 집계는 저장하지 않고 후기에서
+ * 계산하므로 다시 읽으면 반영돼 있다(§9).
  */
 export function useCreateReview(restaurantId: string) {
   const queryClient = useQueryClient();
   return useSupabaseMutation(
-    (draft: ReviewDraft) =>
-      supabase
-        .from('reviews')
-        .insert({
-          restaurant_id: restaurantId,
-          body: normalizedBody(draft.body),
-          rating: draft.rating,
-          recommends: draft.recommends,
-          price_per_person: draft.pricePerPerson,
-          party_size: draft.partySize,
-        })
-        .select('id')
-        .single()
-        .returns<{ id: string }>(),
+    async (draft: ReviewDraft) => {
+      const { data: reviewId, error } = await supabase.rpc('create_review', {
+        p_restaurant_id: restaurantId,
+        p_body: normalizedBody(draft.body),
+        p_rating: draft.rating,
+        p_recommends: draft.recommends,
+        p_price_per_person: draft.pricePerPerson,
+        p_party_size: draft.partySize,
+        p_menu: filledMenu(draft.menu).map((item) => ({
+          name: item.name.trim(),
+          price: item.price,
+        })),
+      });
+      if (error) throw error;
+
+      if (draft.photo) {
+        const { data: auth } = await supabase.auth.getUser();
+        const userId = auth.user?.id;
+        if (!userId) throw new Error('로그인 상태를 확인할 수 없습니다');
+
+        const resized = await resizeToWebp(draft.photo);
+        const path = photoPath(userId, reviewId as string, crypto.randomUUID());
+
+        const upload = await supabase.storage
+          .from(PHOTO_BUCKET)
+          .upload(path, resized.blob, {
+            contentType: 'image/webp',
+            // 사진은 바뀌지 않는다. 길게 캐시해야 전송 비용이 안 든다 — 비용의 핵심이다.
+            cacheControl: '31536000',
+          });
+        if (upload.error) throw upload.error;
+
+        const photoRow = await supabase.from('review_photos').insert({
+          review_id: reviewId as string,
+          storage_path: path,
+          width: resized.width,
+          height: resized.height,
+          byte_size: resized.blob.size,
+          position: 0,
+        });
+        if (photoRow.error) throw photoRow.error;
+      }
+
+      return {
+        success: true as const,
+        data: { id: reviewId as string },
+        error: null,
+      };
+    },
     {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['review-feed'] });

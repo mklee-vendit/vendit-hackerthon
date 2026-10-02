@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   DRAFT_ISSUE_LABEL,
   emptyDraft,
+  MENU_ROWS_MAX,
   REVIEW_BODY_MAX,
   type ReviewDraft,
   remainingChars,
@@ -136,6 +137,110 @@ export function ReviewComposer({
           )}
         </span>
       </label>
+
+      <div className="mt-2 border-t border-dashed border-dash pt-3.5">
+        <div className="flex items-baseline justify-between">
+          <span className={fieldLabel}>먹은 메뉴</span>
+          <span className="text-xs text-content-muted">
+            적어두면 다음 사람 카드에 보여요
+          </span>
+        </div>
+        <ul className="mt-2 flex flex-col gap-1.5">
+          {draft.menu.map((item, index) => (
+            // 줄 자체에는 안정적인 id 가 없다. 지우면 뒤 줄이 당겨지므로 index 가 바뀌는데,
+            // 줄 수가 적고 입력 중 재정렬이 없어 눈에 띄는 문제가 없다.
+            // biome-ignore lint/suspicious/noArrayIndexKey: 재정렬이 없는 짧은 입력 목록
+            <li key={index} className="flex gap-1.5">
+              <input
+                value={item.name}
+                placeholder="메뉴 이름"
+                onChange={(e) =>
+                  patch({
+                    menu: draft.menu.map((row, i) =>
+                      i === index ? { ...row, name: e.target.value } : row,
+                    ),
+                  })
+                }
+                className="h-10 min-w-0 flex-1 rounded-xl border border-line bg-transparent px-3 text-[14px] outline-none focus:border-content"
+              />
+              <span className="flex h-10 w-[108px] flex-none items-center justify-end gap-1 rounded-xl border border-line px-3 focus-within:border-content">
+                <input
+                  inputMode="numeric"
+                  placeholder="가격"
+                  value={item.price === null ? '' : formatWon(item.price)}
+                  onChange={(e) =>
+                    patch({
+                      menu: draft.menu.map((row, i) =>
+                        i === index
+                          ? { ...row, price: parseWon(e.target.value) }
+                          : row,
+                      ),
+                    })
+                  }
+                  className="w-full min-w-0 bg-transparent text-right font-mono text-sm font-semibold outline-none placeholder:font-sans placeholder:text-xs placeholder:font-normal"
+                />
+                {item.price !== null && (
+                  <span className="text-xs text-content-muted">원</span>
+                )}
+              </span>
+              <button
+                type="button"
+                aria-label="메뉴 줄 지우기"
+                onClick={() =>
+                  patch({ menu: draft.menu.filter((_, i) => i !== index) })
+                }
+                className="size-10 flex-none rounded-xl border border-line text-content-muted"
+              >
+                −
+              </button>
+            </li>
+          ))}
+        </ul>
+        {draft.menu.length < MENU_ROWS_MAX && (
+          <button
+            type="button"
+            onClick={() =>
+              patch({ menu: [...draft.menu, { name: '', price: null }] })
+            }
+            className="mt-2 h-10 w-full rounded-xl border border-dashed border-line text-[13px] font-semibold text-content-muted"
+          >
+            + 메뉴 추가
+          </button>
+        )}
+      </div>
+
+      <div className="mt-2 border-t border-dashed border-dash pt-3.5">
+        <div className="flex items-baseline justify-between">
+          <span className={fieldLabel}>사진</span>
+          <span className="text-xs text-content-muted">
+            올리면 자동으로 줄여서 저장해요
+          </span>
+        </div>
+        {draft.photo ? (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="min-w-0 flex-1 truncate font-mono text-xs text-content-muted">
+              {draft.photo.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => patch({ photo: null })}
+              className="h-9 flex-none rounded-lg border border-line px-3 text-[13px] text-content-muted"
+            >
+              빼기
+            </button>
+          </div>
+        ) : (
+          <label className="mt-2 flex h-10 cursor-pointer items-center justify-center rounded-xl border border-dashed border-line text-[13px] font-semibold text-content-muted">
+            + 사진 고르기
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => patch({ photo: e.target.files?.[0] ?? null })}
+            />
+          </label>
+        )}
+      </div>
 
       <div className="mt-2 border-t border-dashed border-dash pt-3.5">
         <div className="flex items-baseline justify-between">

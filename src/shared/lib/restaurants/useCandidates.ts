@@ -6,7 +6,7 @@ import { fetchAllPages } from './paginate';
 
 const COLUMNS = `id, name, category, walk_seconds,
   review_count, recommend_count, avg_rating, party_size_max, latest_review_at,
-  price_min, price_max, price_avg, price_median, diet_tags`;
+  price_min, price_max, price_avg, price_median, diet_tags, menu, photo_path`;
 
 const fetchCandidatePage = async ({
   from,

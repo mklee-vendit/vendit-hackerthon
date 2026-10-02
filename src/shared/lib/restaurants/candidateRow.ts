@@ -1,4 +1,4 @@
-import type { Candidate, DietTagStat } from '@/shared/lib/recommend';
+import type { Candidate, DietTagStat, MenuStat } from '@/shared/lib/recommend';
 
 /**
  * `restaurant_candidates` 뷰의 한 행. 조인과 집계는 DB 가 끝낸 상태로 온다.
@@ -26,6 +26,17 @@ export type CandidateRow = {
     diet_option_id: string;
     available_count: number | string | null;
     unavailable_count: number | string | null;
+  }[];
+  /** 가장 최근 후기의 첫 사진. 없으면 null — 카드가 회색 사선 자리를 그린다 */
+  photo_path: string | null;
+  /** 언급이 많은 순 → 최근 순으로 정렬돼 온다. 몇 개를 보여줄지는 화면이 자른다 */
+  menu: {
+    name: string;
+    mention_count: number | string | null;
+    price_min: number | string | null;
+    price_max: number | string | null;
+    price_avg: number | string | null;
+    price_median: number | string | null;
   }[];
 };
 
@@ -68,6 +79,24 @@ export function toCandidate(row: CandidateRow): Candidate {
     unavailableCount: toCount(tag.unavailable_count),
   }));
 
+  // 가격이 하나라도 비면 그 줄은 버린다 — "메뉴 —원" 을 만들지 않는다(§10.2).
+  const menu: MenuStat[] = (row.menu ?? []).flatMap((item) => {
+    const min = toNumber(item.price_min);
+    const max = toNumber(item.price_max);
+    const avg = toNumber(item.price_avg);
+    const median = toNumber(item.price_median);
+    if (min === null || max === null || avg === null || median === null) {
+      return [];
+    }
+    return [
+      {
+        name: item.name,
+        mentionCount: toCount(item.mention_count),
+        prices: { min, max, avg, median },
+      },
+    ];
+  });
+
   const latest = row.latest_review_at ? new Date(row.latest_review_at) : null;
 
   return {
@@ -82,5 +111,7 @@ export function toCandidate(row: CandidateRow): Candidate {
     latestReviewAt: latest && !Number.isNaN(latest.getTime()) ? latest : null,
     prices,
     dietTags,
+    menu,
+    photoPath: row.photo_path,
   };
 }

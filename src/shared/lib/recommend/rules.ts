@@ -31,6 +31,8 @@ export type RecommendRules = {
   weights: { rating: number; recommendRatio: number; recency: number };
   /** 하단 "첫 후기" 구역에 보여줄 최대 개수 */
   firstReviewLimit: number;
+  /** 카드에 보여줄 대표 메뉴 줄 수 */
+  menuCount: number;
 };
 
 export const PROVISIONAL_RULES: RecommendRules = {
@@ -59,6 +61,9 @@ export const PROVISIONAL_RULES: RecommendRules = {
   // ⚠️ 잠정 — 수집 반경 1,200m 안에 식당이 1,911곳이라 전부 늘어놓을 수 없다. 목업(1k)이
   // 5곳으로 그려져 있어 그 값을 따랐다.
   firstReviewLimit: 5,
+
+  // ⚠️ 잠정 — 목업(1c)이 3줄로 그려져 있어 그 값을 따랐다.
+  menuCount: 3,
 };
 
 /** 가중치 합이 1 에서 벗어나면 점수의 뜻이 달라진다 — 값을 고칠 때 여기서 걸린다. */

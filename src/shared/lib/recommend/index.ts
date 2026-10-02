@@ -18,6 +18,7 @@ export type {
   BlockReason,
   Candidate,
   DietTagStat,
+  MenuStat,
   PriceStat,
   Recommendation,
   Scored,

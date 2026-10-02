@@ -1,6 +1,16 @@
 /** 후기 본문 상한. 확정값 300자 — 목업은 200자로 그려져 있어 문구를 고쳐야 한다. */
 export const REVIEW_BODY_MAX = 300;
 
+/** 후기에 적는 메뉴 한 줄. API 가 주지 않는 정보라 벤더가 적는다(§3 의 기존 패턴). */
+export type MenuDraftItem = {
+  name: string;
+  price: number | null;
+};
+
+export const MENU_NAME_MAX = 40;
+/** 한 후기에 적을 수 있는 메뉴 줄 수. 카드가 3줄을 보여주므로 그보다 넉넉하게. */
+export const MENU_ROWS_MAX = 5;
+
 export type ReviewDraft = {
   /** 1~5 정수. 아직 안 고르면 null */
   rating: number | null;
@@ -11,6 +21,10 @@ export type ReviewDraft = {
   pricePerPerson: number | null;
   /** 함께 간 인원(선택). 식당 단위 단체 수용력이 이 값의 최대값이다 */
   partySize: number | null;
+  /** 먹은 메뉴(선택). 식당 카드의 "대표 메뉴" 가 여기서 쌓인다 */
+  menu: MenuDraftItem[];
+  /** 사진(선택). 올리기 전에 1280px WebP 로 줄인다 */
+  photo: File | null;
 };
 
 export type ReviewDraftIssue =
@@ -19,7 +33,9 @@ export type ReviewDraftIssue =
   | 'bodyTooLong'
   | 'recommends'
   | 'price'
-  | 'partySize';
+  | 'partySize'
+  | 'menuName'
+  | 'menuPrice';
 
 export const DRAFT_ISSUE_LABEL: Record<ReviewDraftIssue, string> = {
   rating: '별점을 골라주세요',
@@ -28,6 +44,8 @@ export const DRAFT_ISSUE_LABEL: Record<ReviewDraftIssue, string> = {
   recommends: '추천 여부를 골라주세요',
   price: '1인 가격을 적어주세요',
   partySize: '함께 간 인원은 1명 이상이어야 해요',
+  menuName: `메뉴 이름은 ${MENU_NAME_MAX}자까지예요`,
+  menuPrice: '적은 메뉴에는 가격도 적어주세요',
 };
 
 export const emptyDraft = (): ReviewDraft => ({
@@ -36,7 +54,14 @@ export const emptyDraft = (): ReviewDraft => ({
   recommends: null,
   pricePerPerson: null,
   partySize: null,
+  menu: [],
+  photo: null,
 });
+
+/** 이름이 비어 있는 줄은 **안 적은 것**으로 본다 — 빈 줄을 저장하지 않는다. */
+export function filledMenu(menu: MenuDraftItem[]): MenuDraftItem[] {
+  return menu.filter((item) => item.name.trim().length > 0);
+}
 
 /**
  * 보낼 수 있는 후기인가.
@@ -76,6 +101,22 @@ export function validateDraft(draft: ReviewDraft): ReviewDraftIssue[] {
     (!Number.isInteger(draft.partySize) || draft.partySize < 1)
   ) {
     issues.push('partySize');
+  }
+
+  for (const item of filledMenu(draft.menu)) {
+    if (item.name.normalize('NFC').trim().length > MENU_NAME_MAX) {
+      issues.push('menuName');
+      break;
+    }
+  }
+  // 이름만 적고 가격을 비우면 카드에 "메뉴 —원" 이 된다. 둘 다 받거나 둘 다 안 받는다.
+  if (
+    filledMenu(draft.menu).some(
+      (item) =>
+        item.price === null || !Number.isInteger(item.price) || item.price < 0,
+    )
+  ) {
+    issues.push('menuPrice');
   }
 
   return issues;

@@ -28,6 +28,8 @@ const candidate = (over: Partial<Candidate> = {}): Candidate => {
     latestReviewAt: new Date('2026-10-01T00:00:00Z'),
     prices: { min: 8000, max: 12000, avg: 10000, median: 9000 },
     dietTags: [],
+    menu: [],
+    photoPath: null,
     ...over,
   };
 };
