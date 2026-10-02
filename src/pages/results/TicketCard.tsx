@@ -60,8 +60,14 @@ export function TicketCard({
           </span>
         )}
         <div className="mt-auto grid grid-cols-3 gap-2 bg-linear-to-b from-ink/0 to-ink/84 to-45% px-3.5 pt-[30px] pb-3 font-mono text-ink-content">
-          <Stat label="평균 별점" value={`★ ${r.avgStar.toFixed(1)}`} />
-          <Stat label="추천 비율" value={`${r.recommendRate}%`} />
+          <Stat
+            label="평균 별점"
+            value={r.avgStar === null ? '—' : `★ ${r.avgStar.toFixed(1)}`}
+          />
+          <Stat
+            label="추천 비율"
+            value={r.recommendRate === null ? '—' : `${r.recommendRate}%`}
+          />
           <Stat label="후기 수" value={`${r.reviewCount}개`} />
         </div>
       </div>
@@ -90,9 +96,25 @@ export function TicketCard({
               <NaverDirectionsIcon />
             </button>
           </div>
+          {r.unconfirmed.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {r.unconfirmed.map((label) => (
+                <li
+                  key={label}
+                  className="rounded-full border border-dashed border-line px-2 py-0.5 font-mono text-[11px] text-content-muted"
+                >
+                  ? {label}
+                </li>
+              ))}
+            </ul>
+          )}
           <div className="mt-1.5 flex gap-3.5 font-mono text-[13px]">
             <span>도보 {r.walkMinutes ?? '—'}분</span>
-            <span>1인 {formatWon(r.pricePerPerson)}원</span>
+            <span>
+              {r.pricePerPerson === null
+                ? '1인 —'
+                : `1인 ${formatWon(r.pricePerPerson)}원`}
+            </span>
           </div>
           <div className="mt-3 text-[13px] leading-normal">
             <div className="text-xs text-content-muted">대표 메뉴</div>

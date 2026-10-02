@@ -1,7 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { previewRoutes } from '@/pages/preview/previewRoutes';
+import { ResultsRoute } from '@/pages/results/ResultsRoute';
+import { SearchRoute } from '@/pages/search/SearchRoute';
 import { RequireMember } from './RequireMember';
 
 export const router = createBrowserRouter([
@@ -10,7 +11,15 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <RequireMember>
-        <HomePage />
+        <SearchRoute />
+      </RequireMember>
+    ),
+  },
+  {
+    path: '/results',
+    element: (
+      <RequireMember>
+        <ResultsRoute />
       </RequireMember>
     ),
   },

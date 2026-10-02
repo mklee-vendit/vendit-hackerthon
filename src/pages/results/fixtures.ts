@@ -51,6 +51,7 @@ export const PREVIEW_RESTAURANTS: RestaurantCardData[] = ROWS.map(
     recommendRate: rec,
     reviewCount: count,
     menu: menu.map(([n, p]) => ({ name: n, price: p })),
+    unconfirmed: [],
     latestReview: { body, author, when },
   }),
 );

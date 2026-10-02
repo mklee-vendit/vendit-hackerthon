@@ -7,6 +7,7 @@ import {
   type Situation,
   WALK_MINUTE_OPTIONS,
 } from '@/shared/constants/search';
+import type { SearchCriteria } from '@/shared/lib/recommend';
 import { cn, formatWon, parseWon } from '@/shared/utils';
 
 const SITUATIONS: Situation[] = ['lunch', 'party'];
@@ -18,10 +19,9 @@ type SearchPageProps = {
   displayName: string;
   /** 하단 수집 상태 줄 — 수집 실패를 숨기지 않기 위한 표시(§7). */
   collectionNote: string;
-  onSubmit?: () => void;
+  /** 누른 시점의 조건을 그대로 넘긴다. 화면은 조건을 어디로 보낼지 모른다 */
+  onSubmit?: (criteria: SearchCriteria) => void;
 };
-
-// TODO: 검색 동작 연결 전까지는 입력값을 화면 안에서만 들고 있다.
 export function SearchPage({
   displayName,
   collectionNote,
@@ -149,8 +149,20 @@ export function SearchPage({
         <div className="flex flex-col gap-3">
           <button
             type="button"
-            onClick={onSubmit}
-            className="h-14 w-full rounded-[14px] bg-brand text-base font-bold text-brand-content"
+            // 예산을 비운 채로는 검색하지 않는다 — 빈 칸을 0 원으로 읽으면 결과가 0곳이 되고,
+            // 사용자는 조건이 비었다는 걸 모른 채 "맞는 곳 없음" 을 본다(§10.5).
+            disabled={budget === null}
+            onClick={() =>
+              budget !== null &&
+              onSubmit?.({
+                situation,
+                headcount,
+                budgetPerPerson: budget,
+                maxWalkMinutes: walkMinutes,
+                dietOptionIds: [],
+              })
+            }
+            className="h-14 w-full rounded-[14px] bg-brand text-base font-bold text-brand-content disabled:opacity-50"
           >
             식당 찾기
           </button>
