@@ -6,8 +6,11 @@ import {
   type SearchCriteria,
 } from '@/shared/lib/recommend';
 import {
+  toMenu,
+  toPhoto,
   toRecommendRate,
   toResultsViewModel,
+  toUnreviewedCardData,
   toWalkMinutes,
 } from './mapRecommendation';
 
@@ -34,6 +37,8 @@ const candidate = (over: Partial<Candidate> = {}): Candidate => {
     lat: 37.5,
     naverPlaceId: null,
     naverPrices: null,
+    naverPhotoUrl: null,
+    naverMenu: [],
     ...over,
   };
 };
@@ -186,5 +191,83 @@ describe('toResultsViewModel', () => {
       budget: 50_000,
       walkMinutes: 10,
     });
+  });
+});
+
+describe('메뉴·사진의 출처 — 후기가 먼저다', () => {
+  const naverStuff = {
+    naverPhotoUrl: 'https://pstatic.net/a.jpg',
+    naverMenu: [
+      { name: '메뉴판1', price: 9000 },
+      { name: '메뉴판2', price: 11_000 },
+      { name: '메뉴판3', price: 13_000 },
+      { name: '메뉴판4', price: 15_000 },
+    ],
+  };
+
+  test('후기에 적힌 메뉴가 있으면 그것을 쓴다', () => {
+    const c = candidate({
+      ...naverStuff,
+      menu: [
+        {
+          name: '후기메뉴',
+          mentionCount: 2,
+          prices: { min: 8000, max: 8000, avg: 8000, median: 8000 },
+        },
+      ],
+    });
+    expect(toMenu(c, PROVISIONAL_RULES)).toEqual({
+      items: [{ name: '후기메뉴', price: 8000 }],
+      source: 'review',
+    });
+  });
+
+  test('아무도 안 적었으면 메뉴판으로 채우고 출처를 밝힌다', () => {
+    const result = toMenu(candidate({ ...naverStuff, menu: [] }), {
+      ...PROVISIONAL_RULES,
+      menuCount: 3,
+    });
+    expect(result.source).toBe('naver');
+    expect(result.items).toHaveLength(3);
+    expect(result.items[0]).toEqual({ name: '메뉴판1', price: 9000 });
+  });
+
+  test('둘 다 없으면 빈 목록 — 카드가 "—" 를 그린다', () => {
+    const result = toMenu(
+      candidate({ menu: [], naverMenu: [] }),
+      PROVISIONAL_RULES,
+    );
+    expect(result.items).toEqual([]);
+  });
+
+  test('사진도 후기가 먼저, 없으면 네이버, 둘 다 없으면 출처가 null', () => {
+    expect(
+      toPhoto(candidate({ photoPath: 'a/b.webp', ...naverStuff })).source,
+    ).toBe('review');
+    expect(toPhoto(candidate({ photoPath: null, ...naverStuff }))).toEqual({
+      url: 'https://pstatic.net/a.jpg',
+      source: 'naver',
+    });
+    expect(
+      toPhoto(candidate({ photoPath: null, naverPhotoUrl: null })),
+    ).toEqual({ url: undefined, source: null });
+  });
+
+  // 후기가 0건이어도 카드가 비어 보이지 않게 — 사용자가 지적한 빈 칸이 여기다.
+  test('후기 0개 카드도 메뉴판 금액·메뉴·사진으로 채운다', () => {
+    const card = toUnreviewedCardData(
+      candidate({
+        reviewCount: 0,
+        prices: null,
+        photoPath: null,
+        ...naverStuff,
+        naverPrices: { min: 9000, median: 12_000, count: 4 },
+      }),
+    );
+    expect(card.pricePerPerson).toBeNull();
+    expect(card.menuPricePerPerson).toBe(12_000);
+    expect(card.menuSource).toBe('naver');
+    expect(card.menu).toHaveLength(3);
+    expect(card.photoSource).toBe('naver');
   });
 });

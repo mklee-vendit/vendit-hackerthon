@@ -33,6 +33,8 @@ const candidate = (over: Partial<Candidate> = {}): Candidate => {
     lat: 37.5,
     naverPlaceId: null,
     naverPrices: null,
+    naverPhotoUrl: null,
+    naverMenu: [],
     ...over,
   };
 };
@@ -295,26 +297,23 @@ describe('네이버 메뉴판 기준 예산 — 후기가 없어도 본다', () 
     expect(v).toEqual({ kind: 'blocked', reasons: ['price'] });
   });
 
-  test('예산 이하 메뉴가 하나라도 있으면 통과한다 — min 은 잘못 숨기지 않는 쪽이다', () => {
+  // 기본값이 median 인 이유가 여기 있다: 싼 메뉴 한 줄로 비싼 집이 통과하면 안 된다.
+  test('싼 메뉴가 하나 있어도 보통 시켜 예산을 넘으면 걸린다 (median)', () => {
     const v = judge(
       noReview({ naverPrices: { min: 9000, median: 22_000, count: 20 } }),
       lunch({ budgetPerPerson: 10_000 }),
       rules(),
     );
-    expect(v.kind).toBe('noReviews');
+    expect(v).toEqual({ kind: 'blocked', reasons: ['price'] });
   });
 
-  test('median 으로 바꾸면 더 조인다 — 같은 식당이 걸린다', () => {
-    const c = noReview({
-      naverPrices: { min: 9000, median: 22_000, count: 20 },
-    });
-    const criteria = lunch({ budgetPerPerson: 10_000 });
-    expect(judge(c, criteria, rules({ menuPriceAggregate: 'median' }))).toEqual(
-      {
-        kind: 'blocked',
-        reasons: ['price'],
-      },
+  test('min 으로 바꾸면 느슨해진다 — 예산 이하 메뉴가 하나라도 있으면 통과', () => {
+    const v = judge(
+      noReview({ naverPrices: { min: 9000, median: 22_000, count: 20 } }),
+      lunch({ budgetPerPerson: 10_000 }),
+      rules({ menuPriceAggregate: 'min' }),
     );
+    expect(v.kind).toBe('noReviews');
   });
 
   // 메뉴판을 아직 못 긁은 식당이 **조용히 사라지면 안 된다**. 모르는 것은 판정하지 않는다.

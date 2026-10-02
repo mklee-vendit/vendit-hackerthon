@@ -15,6 +15,8 @@ import type {
   FirstReviewItem,
   LatestReview,
   MenuItem,
+  MenuSource,
+  PhotoSource,
   RestaurantCardData,
   SearchConditions,
 } from './types';
@@ -56,6 +58,38 @@ export function toMenuItems(
   }));
 }
 
+/**
+ * 메뉴 줄. **후기가 이긴다** — 벤더가 먹은 메뉴가 이 서비스의 값이고, 메뉴판은 가게가 내건
+ * 값이다. 후기에 아무도 안 적었으면 메뉴판으로 채우고 화면이 라벨을 가른다.
+ */
+export function toMenu(
+  candidate: Candidate,
+  rules: RecommendRules,
+): { items: MenuItem[]; source: MenuSource } {
+  const fromReview = toMenuItems(candidate, rules);
+  if (fromReview.length > 0) return { items: fromReview, source: 'review' };
+  return {
+    items: candidate.naverMenu.slice(0, rules.menuCount),
+    source: 'naver',
+  };
+}
+
+/** 사진도 후기가 먼저다. 둘 다 없으면 카드가 회색 사선 자리를 그린다. */
+export function toPhoto(candidate: Candidate): {
+  url: string | undefined;
+  source: PhotoSource;
+} {
+  const fromReview = photoPublicUrl(candidate.photoPath);
+  if (fromReview) return { url: fromReview, source: 'review' };
+  if (candidate.naverPhotoUrl) {
+    return { url: candidate.naverPhotoUrl, source: 'naver' };
+  }
+  return { url: undefined, source: null };
+}
+
+/** 후기 0개 카드의 메뉴판 줄 수. `rules.menuCount` 와 같은 뜻이지만 이 함수는 rules 를 받지 않는다 */
+const NAVER_MENU_LINES = 3;
+
 const toNaverMap = (candidate: Candidate) =>
   naverMapTarget({
     name: candidate.name,
@@ -71,6 +105,8 @@ export function toCardData(
   latestReview: LatestReview | null,
 ): RestaurantCardData {
   const { candidate } = scored;
+  const menu = toMenu(candidate, rules);
+  const photo = toPhoto(candidate);
   return {
     id: candidate.restaurantId,
     rank,
@@ -78,17 +114,18 @@ export function toCardData(
     category: candidate.category,
     walkMinutes: toWalkMinutes(candidate.walkSeconds),
     pricePerPerson: priceFor(candidate, rules.priceAggregate),
+    menuPricePerPerson: candidate.naverPrices?.median ?? null,
     avgStar: candidate.avgRating,
     recommendRate: toRecommendRate(
       candidate.recommendCount,
       candidate.reviewCount,
     ),
     reviewCount: candidate.reviewCount,
-    // 대표 메뉴는 후기에 적힌 것에서 쌓인다(§3 의 패턴). 아무도 안 적었으면 비어 있고,
-    // 목업이 "메뉴 —" 으로 그 상태를 그려 뒀다.
-    menu: toMenuItems(candidate, rules),
+    menu: menu.items,
+    menuSource: menu.source,
     unconfirmed: scored.unconfirmed.map((kind) => UNCONFIRMED_LABEL[kind]),
-    photoUrl: photoPublicUrl(candidate.photoPath),
+    photoUrl: photo.url,
+    photoSource: photo.source,
     latestReview,
     naverMap: toNaverMap(candidate),
   };
@@ -106,10 +143,13 @@ export function toFirstReviewItem(candidate: Candidate): FirstReviewItem {
 /**
  * 후기 0개 식당을 **같은 식권 카드**로 그리기 위한 모양.
  *
- * 가격·별점·추천 비율은 후기에서 나오는 값이라 전부 null 이다 — 0 으로 채우면 ★0.0 · 0% 가
- * 되어 "나쁜 식당" 이라는 **다른 뜻**이 된다(§10.2). 순위도 없다(점수가 없으므로).
+ * 별점·추천 비율은 후기에서 나오는 값이라 null 이다 — 0 으로 채우면 ★0.0 · 0% 가 되어
+ * "나쁜 식당" 이라는 **다른 뜻**이 된다(§10.2). 순위도 없다(점수가 없으므로).
+ *
+ * 1인 가격·메뉴·사진은 **메뉴판에서** 채운다. 출처가 후기와 다르므로 화면이 라벨을 가른다.
  */
 export function toUnreviewedCardData(candidate: Candidate): RestaurantCardData {
+  const photo = toPhoto(candidate);
   return {
     id: candidate.restaurantId,
     rank: 0,
@@ -117,12 +157,16 @@ export function toUnreviewedCardData(candidate: Candidate): RestaurantCardData {
     category: candidate.category,
     walkMinutes: toWalkMinutes(candidate.walkSeconds),
     pricePerPerson: null,
+    // 후기가 없어도 **메뉴판이 있으면** 금액을 보여 줄 수 있다. 라벨로 출처를 밝힌다.
+    menuPricePerPerson: candidate.naverPrices?.median ?? null,
     avgStar: null,
     recommendRate: null,
     reviewCount: 0,
-    menu: [],
+    menu: candidate.naverMenu.slice(0, NAVER_MENU_LINES),
+    menuSource: 'naver',
     unconfirmed: [],
-    photoUrl: photoPublicUrl(candidate.photoPath),
+    photoUrl: photo.url,
+    photoSource: photo.source,
     latestReview: null,
     naverMap: toNaverMap(candidate),
   };

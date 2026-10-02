@@ -62,9 +62,10 @@ export function TicketCard({
           r.photoUrl ? { backgroundImage: `url(${r.photoUrl})` } : undefined
         }
       >
-        {!r.photoUrl && (
+        {/* 벤더가 찍은 사진과 가게 사진을 말없이 섞지 않는다 — 어디서 온 사진인지 적는다 */}
+        {(!r.photoUrl || r.photoSource === 'naver') && (
           <span className="m-2.5 self-start rounded-[5px] bg-surface px-[7px] py-[3px] font-mono text-[11px] text-content-muted">
-            사진 없음
+            {r.photoUrl ? '네이버 사진' : '사진 없음'}
           </span>
         )}
         <div className="mt-auto bg-linear-to-b from-ink/0 to-ink/84 to-45% px-3.5 pt-[30px] pb-3 font-mono text-ink-content">
@@ -136,14 +137,24 @@ export function TicketCard({
           )}
           <div className="mt-1.5 flex gap-3.5 font-mono text-[13px]">
             <span>도보 {r.walkMinutes ?? '—'}분</span>
-            <span>
-              {r.pricePerPerson === null
-                ? '1인 —'
-                : `1인 ${formatWon(r.pricePerPerson)}원`}
-            </span>
+            {/* 후기 집계가 없을 때만 메뉴판 금액을 쓰고, 그때는 출처를 붙인다(§8) */}
+            {r.pricePerPerson !== null ? (
+              <span>1인 {formatWon(r.pricePerPerson)}원</span>
+            ) : r.menuPricePerPerson !== null ? (
+              <span>
+                1인 {formatWon(r.menuPricePerPerson)}원
+                <span className="text-content-muted"> (메뉴판)</span>
+              </span>
+            ) : (
+              <span>1인 —</span>
+            )}
           </div>
           <div className="mt-3 text-[13px] leading-normal">
-            <div className="text-xs text-content-muted">대표 메뉴</div>
+            {/* 네이버는 "대표 메뉴" 를 따로 주지 않는다 — 화면에 보이던 순서일 뿐이라
+                대표라고 부르지 않는다(§10.2) */}
+            <div className="text-xs text-content-muted">
+              {r.menuSource === 'naver' ? '메뉴판' : '대표 메뉴'}
+            </div>
             {r.menu.length === 0 ? (
               <div className="mt-1">—</div>
             ) : (

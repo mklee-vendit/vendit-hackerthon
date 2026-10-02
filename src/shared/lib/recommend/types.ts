@@ -64,6 +64,13 @@ export type Candidate = {
    * 숫자로 파싱된 가격이 하나도 없으면 null.
    */
   naverPrices: { min: number; median: number; count: number } | null;
+  /** 네이버 상단 사진 첫 장. 후기 사진이 없을 때의 대체 출처 */
+  naverPhotoUrl: string | null;
+  /**
+   * 네이버 메뉴판 줄. **화면에 보이던 순서**이고 네이버가 "대표" 를 따로 주지 않으므로
+   * 대표 메뉴라고 부르지 않는다(§10.2). 금액이 숫자로 파싱된 줄만 온다.
+   */
+  naverMenu: { name: string; price: number }[];
 };
 
 export type SearchCriteria = {

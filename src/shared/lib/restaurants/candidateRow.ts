@@ -38,6 +38,8 @@ export type CandidateRow = {
   naver_price_min: number | string | null;
   naver_price_median: number | string | null;
   naver_price_count: number | string | null;
+  naver_photo_url: string | null;
+  naver_menu: { name: string; price: number | string | null }[];
   /** 언급이 많은 순 → 최근 순으로 정렬돼 온다. 몇 개를 보여줄지는 화면이 자른다 */
   menu: {
     name: string;
@@ -140,5 +142,11 @@ export function toCandidate(row: CandidateRow): Candidate {
     lat: toNumber(row.lat),
     naverPlaceId: row.naver_place_id,
     naverPrices: naverPrices(row),
+    naverPhotoUrl: row.naver_photo_url,
+    // 가격이 비면 그 줄은 버린다 — 카드가 "메뉴 —원" 을 그리게 둘 수 없다(§10.2).
+    naverMenu: (row.naver_menu ?? []).flatMap((item) => {
+      const price = toNumber(item.price);
+      return price === null ? [] : [{ name: item.name, price }];
+    }),
   };
 }
