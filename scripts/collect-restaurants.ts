@@ -171,6 +171,13 @@ function toSql(rows: CollectedRestaurant[]): string {
 -- 사무실 ${OFFICE.lat}, ${OFFICE.lon} / 반경 ${COLLECT_RADIUS_M}m / 식당 ${rows.length}곳
 begin;
 
+-- 사무실 좌표도 같은 트랜잭션에서 쓴다. DB 쪽(도보 시간 갱신)이 이 값을 쓰므로, 식당
+-- 목록과 중심이 **항상 짝이 맞아야** 한다 — 따로 적어 두면 한쪽만 바뀐다(§10.1).
+insert into public.office_location (singleton, lon, lat, updated_at)
+values (true, ${OFFICE.lon}, ${OFFICE.lat}, now())
+on conflict (singleton) do update set
+  lon = excluded.lon, lat = excluded.lat, updated_at = now();
+
 insert into public.restaurants
   (kakao_place_id, name, category, address, road_address, lon, lat, collected_at)
 select
