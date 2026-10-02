@@ -107,6 +107,9 @@ export function ResultsRoute() {
       onEditConditions={() =>
         navigate(`/?${criteriaToParams(parsed.criteria).toString()}`)
       }
+      onFirstReviewClick={(restaurantId) =>
+        navigate(`/restaurants/${restaurantId}`)
+      }
     />
   );
 }
