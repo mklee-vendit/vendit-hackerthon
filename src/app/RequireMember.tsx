@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { signOut, useProfile, useSession } from '@/shared/lib/auth';
+import { useProfile, useSession } from '@/shared/lib/auth';
 import { extractCause } from '@/shared/lib/extractCause';
 
 const Centered = ({ children }: { children: ReactNode }) => (
@@ -10,9 +10,8 @@ const Centered = ({ children }: { children: ReactNode }) => (
 );
 
 /**
- * 네 상태를 구별한다. **"로그인됨" 과 "멤버임" 은 다르다** — 사내 계정이 아닌 구글 계정도
- * 가입 거절 훅이 꺼져 있으면 세션까지는 만들어지고, 그 계정은 profiles 행이 없어서
- * 아무 데이터도 못 본다. 그 상태를 빈 화면이 아니라 이유로 보여준다.
+ * 멤버만 통과시킨다. **사유를 보여주는 일은 하지 않는다** — 로그인 화면이 한 곳에서 하므로,
+ * 여기서 또 만들면 같은 문구가 두 군데 생긴다.
  */
 export function RequireMember({ children }: { children: ReactNode }) {
   const session = useSession();
@@ -20,17 +19,9 @@ export function RequireMember({ children }: { children: ReactNode }) {
     session.status === 'signedIn' ? session.session.user.id : undefined;
   const profile = useProfile(userId);
 
-  if (session.status === 'loading') {
-    return <Centered>불러오는 중…</Centered>;
-  }
-
-  if (session.status === 'signedOut') {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (profile.isPending) {
-    return <Centered>불러오는 중…</Centered>;
-  }
+  if (session.status === 'loading') return <Centered>불러오는 중…</Centered>;
+  if (session.status === 'signedOut') return <Navigate to="/login" replace />;
+  if (profile.isPending) return <Centered>불러오는 중…</Centered>;
 
   if (profile.isError) {
     return (
@@ -47,20 +38,8 @@ export function RequireMember({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!profile.data) {
-    return (
-      <Centered>
-        <p>
-          {session.session.user.email} 은 사내 계정이 아닙니다.
-          <br />
-          @vendit.co.kr 계정으로 다시 로그인해 주세요.
-        </p>
-        <button type="button" className="underline" onClick={() => signOut()}>
-          로그아웃
-        </button>
-      </Centered>
-    );
-  }
+  // 로그인은 됐지만 멤버가 아니다 — 로그인 화면이 사유를 보여준다.
+  if (!profile.data) return <Navigate to="/login" replace />;
 
   return children;
 }
