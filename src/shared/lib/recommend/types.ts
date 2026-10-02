@@ -115,6 +115,11 @@ export type Recommendation = {
   firstReview: Candidate[];
   /** 후기 0개 구역에서 표시 개수를 넘겨 잘린 수. 0 이면 다 보여주고 있다 */
   firstReviewTruncated: number;
+  /**
+   * 후기 0개 구역에서 **보여 줄 정보가 없어 빠진** 식당 수(사진·메뉴판 둘 중 하나라도 없음).
+   * 조건에 걸린 게 아니라 우리가 아는 게 없어서 뺀 것이므로 `blocked` 와 섞지 않는다.
+   */
+  firstReviewNoInfo: number;
   /** 하드 필터에 걸린 식당 수를 이유별로. 통과 0곳일 때 이걸 보여준다(§6) */
   blocked: { reason: BlockReason; count: number }[];
   /**

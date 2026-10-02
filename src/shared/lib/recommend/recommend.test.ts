@@ -177,7 +177,9 @@ describe('식사 제약', () => {
 });
 
 describe('후기 0개 식당', () => {
-  const noReview = () =>
+  // 사진·메뉴판이 있어야 하단 구역에 오른다(아래 describe 참고). 발굴 목록의 다른 성질을
+  // 보는 테스트들이므로 기본값으로 둘을 채워 둔다.
+  const noReview = (over: Partial<Candidate> = {}) =>
     candidate({
       reviewCount: 0,
       recommendCount: 0,
@@ -185,6 +187,9 @@ describe('후기 0개 식당', () => {
       partySizeMax: null,
       latestReviewAt: null,
       prices: null,
+      naverPhotoUrl: 'https://pstatic.net/a.jpg',
+      naverMenu: [{ name: '메뉴', price: 9000 }],
+      ...over,
     });
 
   test('가격·단체·제약을 판정하지 않고 noReviews 로 보낸다', () => {
@@ -273,6 +278,53 @@ describe('후기 0개 식당', () => {
         now: NOW,
       }).firstReview.map((c) => c.restaurantId);
     expect(pick(4)).not.toEqual(pick(8));
+  });
+});
+
+describe('발굴 목록은 보여 줄 것이 있는 식당만', () => {
+  const noReview = (over: Partial<Candidate> = {}) =>
+    candidate({
+      reviewCount: 0,
+      recommendCount: 0,
+      avgRating: null,
+      partySizeMax: null,
+      latestReviewAt: null,
+      prices: null,
+      naverPhotoUrl: 'https://pstatic.net/a.jpg',
+      naverMenu: [{ name: '메뉴', price: 9000 }],
+      ...over,
+    });
+
+  const run = (candidates: Candidate[]) =>
+    recommend({ candidates, criteria: lunch(), rules: rules(), now: NOW });
+
+  test('사진과 메뉴판이 다 있으면 올라간다', () => {
+    expect(run([noReview()]).firstReview).toHaveLength(1);
+  });
+
+  test('사진이 없으면 빠진다', () => {
+    const result = run([noReview({ naverPhotoUrl: null })]);
+    expect(result.firstReview).toEqual([]);
+    expect(result.firstReviewNoInfo).toBe(1);
+  });
+
+  test('메뉴판이 없으면 빠진다', () => {
+    const result = run([noReview({ naverMenu: [] })]);
+    expect(result.firstReview).toEqual([]);
+    expect(result.firstReviewNoInfo).toBe(1);
+  });
+
+  // 조건에 걸린 것과 **다른 이유**다 — blocked 에 섞으면 "걸린 조건" 화면이 거짓말을 한다.
+  test('정보가 없어 빠진 것은 blocked 에 들어가지 않는다', () => {
+    const result = run([noReview({ naverPhotoUrl: null, naverMenu: [] })]);
+    expect(result.blocked).toEqual([]);
+    expect(result.firstReviewNoInfo).toBe(1);
+  });
+
+  test('후기가 있는 식당에는 적용되지 않는다 — 사진·메뉴판이 없어도 통과한다', () => {
+    const result = run([candidate({ naverPhotoUrl: null, naverMenu: [] })]);
+    expect(result.picks).toHaveLength(1);
+    expect(result.firstReviewNoInfo).toBe(0);
   });
 });
 

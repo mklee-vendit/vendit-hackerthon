@@ -190,6 +190,8 @@ export type ResultsViewModel = {
   /** 같은 목록을 식권 카드로도 그릴 수 있게 */
   firstReviewCards: RestaurantCardData[];
   firstReviewTruncated: number;
+  /** 사진·메뉴판이 없어 하단 구역에서 빠진 수. 조건에 걸린 것과는 다른 이유다 */
+  firstReviewNoInfo: number;
   /** 통과 0곳일 때 보여줄 "걸린 조건". 사람이 읽는 말로 바꿔 둔다 */
   blocked: { label: string; count: number }[];
   unmeasuredWalkCount: number;
@@ -223,6 +225,7 @@ export function toResultsViewModel({
     firstReview: recommendation.firstReview.map(toFirstReviewItem),
     firstReviewCards: recommendation.firstReview.map(toUnreviewedCardData),
     firstReviewTruncated: recommendation.firstReviewTruncated,
+    firstReviewNoInfo: recommendation.firstReviewNoInfo,
     blocked: recommendation.blocked.map(({ reason, count }) => ({
       label: BLOCK_LABEL[reason],
       count,

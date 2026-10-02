@@ -37,6 +37,7 @@ export function recommend({
   const firstReviewAll: Candidate[] = [];
   const blockedCounts = new Map<BlockReason, number>();
   let unmeasuredWalkCount = 0;
+  let firstReviewNoInfo = 0;
 
   for (const candidate of candidates) {
     // 도보를 재지 못한 식당은 판정에서 빼되 **수를 센다**. 결과에 넣을지는 미정이고,
@@ -56,6 +57,16 @@ export function recommend({
     }
 
     if (verdict.kind === 'noReviews') {
+      // 후기가 없는 구역은 **보여 줄 것이 있는 식당만** 올린다(jhey 결정 2026-10-02).
+      // 이름과 도보 시간뿐인 카드로는 "안 가본 집을 꺼내 준다" 가 성립하지 않는다 — 고르려면
+      // 사진과 메뉴가 있어야 한다. 가려진 수는 **세어서 돌려준다**(§10.5).
+      if (
+        candidate.naverMenu.length === 0 ||
+        candidate.naverPhotoUrl === null
+      ) {
+        firstReviewNoInfo += 1;
+        continue;
+      }
       firstReviewAll.push(candidate);
       continue;
     }
@@ -106,6 +117,7 @@ export function recommend({
     rest,
     firstReview,
     firstReviewTruncated: firstReviewAll.length - firstReview.length,
+    firstReviewNoInfo,
     blocked: BLOCK_ORDER.filter((reason) => blockedCounts.has(reason)).map(
       (reason) => ({ reason, count: blockedCounts.get(reason) ?? 0 }),
     ),

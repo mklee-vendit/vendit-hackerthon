@@ -134,6 +134,9 @@ describe('toResultsViewModel', () => {
       latestReviewAt: null,
       prices: null,
       walkSeconds: 120,
+      // 사진·메뉴판이 있어야 하단 구역에 오른다
+      naverPhotoUrl: 'https://pstatic.net/a.jpg',
+      naverMenu: [{ name: '메뉴', price: 9000 }],
     });
     const vm = view([noReview]);
     expect(vm.restaurants).toHaveLength(0);
@@ -156,6 +159,9 @@ describe('toResultsViewModel', () => {
       latestReviewAt: null,
       prices: null,
       walkSeconds: 240,
+      // 사진·메뉴판이 있어야 하단 구역에 오른다
+      naverPhotoUrl: 'https://pstatic.net/a.jpg',
+      naverMenu: [{ name: '메뉴', price: 9000 }],
     });
     const [card] = view([noReview]).firstReviewCards;
     expect(card.name).toBe(noReview.name);
