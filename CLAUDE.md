@@ -1,7 +1,12 @@
 # Vendit Hackerton — AI & Developer Guide
 
 요구사항 정본은 [`docs/venparty.md`](docs/venparty.md) 입니다 — 작업 전에 그 문서를 먼저 읽으세요.
-인증 설정 절차는 [`docs/auth-setup.md`](docs/auth-setup.md).
+
+| 문서 | |
+|---|---|
+| [`docs/next-steps.md`](docs/next-steps.md) | **남은 작업과 착수 순서.** 지금 무엇이 가짜인지도 여기 |
+| [`docs/api-survey.md`](docs/api-survey.md) | 카카오·TMAP·네이버 실사 결과와 확정된 수집 설정 |
+| [`docs/auth-setup.md`](docs/auth-setup.md) | 구글 로그인·도메인 제한 설정 절차 |
 
 사내 해커톤용 프로젝트입니다. React 프론트엔드 1개 + Supabase(Postgres) 구성이며, 별도 서버 없이
 브라우저에서 DB 에 직접 붙습니다 — 그래서 **모든 테이블은 RLS 를 켜고 정책을 적어야 합니다.**
