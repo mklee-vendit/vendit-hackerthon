@@ -1,5 +1,8 @@
 # Vendit Hackerton — AI & Developer Guide
 
+요구사항 정본은 [`docs/venparty.md`](docs/venparty.md) 입니다 — 작업 전에 그 문서를 먼저 읽으세요.
+인증 설정 절차는 [`docs/auth-setup.md`](docs/auth-setup.md).
+
 사내 해커톤용 프로젝트입니다. React 프론트엔드 1개 + Supabase(Postgres) 구성이며, 별도 서버 없이
 브라우저에서 DB 에 직접 붙습니다 — 그래서 **모든 테이블은 RLS 를 켜고 정책을 적어야 합니다.**
 
@@ -196,3 +199,16 @@ preload 가 조용히 빠지면 위 전제가 사라지므로 그 자체를 검�
 
 `@/` alias 는 **세 곳**에 적혀 있습니다 — `vite.config.ts`(번들), `tsconfig.app.json`(tsc),
 그리고 루트 `tsconfig.json`(bun 이 읽는 곳). 루트에 없으면 `bun test` 에서만 모듈을 못 찾습니다.
+
+## 인증
+
+구글 로그인 + `@vendit.co.kr` 제한. 막는 지점이 세 겹이고 각각 사는 곳이 다릅니다 —
+자세한 건 [`docs/auth-setup.md`](docs/auth-setup.md).
+
+- **도메인 판정은 SQL `public.is_vendit_email()` 하나뿐입니다.** 프론트엔드에 같은 규칙을
+  다시 쓰지 마세요. 화면은 `useProfile()` 로 멤버십 행이 있는지만 읽습니다.
+- **세션은 클라이언트 상태**(Supabase 구독 → `AuthProvider`), **멤버십은 서버 상태**
+  (react-query → `useProfile`). 세션을 react-query 에 넣거나 profiles 를 zustand 에
+  복사하지 마세요.
+- 새 테이블에는 정책에 `public.is_member()` 를 넣으세요. 넣지 않으면 로그인한 외부 계정도
+  읽습니다.

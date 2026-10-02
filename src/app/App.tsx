@@ -5,6 +5,7 @@ import { ModalFlowProvider } from '@/shared/lib/modal/ModalFlowProvider';
 import { ModalStateProvider } from '@/shared/lib/modal/ModalStateProvider';
 import { createQueryClient } from '@/shared/lib/query';
 import { Z_INDEX } from './constants/zIndex';
+import { AuthProvider } from './providers/auth/AuthProvider';
 import ModalContainer from './providers/modal/ModalContainer';
 import ToastContainer from './providers/toast/ToastContainer';
 import { router } from './router';
@@ -19,13 +20,15 @@ export function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ModalStateProvider>
-        <ModalFlowProvider>
-          <RouterProvider router={router} />
-          <ModalContainer zIndex={Z_INDEX.modal} />
-          <ToastContainer zIndex={Z_INDEX.toast} />
-        </ModalFlowProvider>
-      </ModalStateProvider>
+      <AuthProvider>
+        <ModalStateProvider>
+          <ModalFlowProvider>
+            <RouterProvider router={router} />
+            <ModalContainer zIndex={Z_INDEX.modal} />
+            <ToastContainer zIndex={Z_INDEX.toast} />
+          </ModalFlowProvider>
+        </ModalStateProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
