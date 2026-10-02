@@ -1,3 +1,8 @@
+export {
+  discoverySeed,
+  localDateKey,
+  seededShuffle,
+} from './discovery';
 export { judge, priceFor } from './filter';
 export { recommend } from './recommend';
 export {

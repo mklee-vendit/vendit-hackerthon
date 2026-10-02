@@ -201,7 +201,7 @@ export function ResultsPage({
                 아직 후기가 없는 식당{' '}
                 <span className="font-mono">{firstReview.length}</span>곳
               </h2>
-              <span className="text-xs text-content-muted">도보순</span>
+              <span className="text-xs text-content-muted">매일 바뀌어요</span>
             </div>
 
             <div className="flex flex-col gap-3.5 pt-2.5">

@@ -1,3 +1,4 @@
+import { discoverySeed, seededShuffle } from './discovery';
 import { judge } from './filter';
 import { assertRules, type RecommendRules } from './rules';
 import { scoreParts, weightedScore } from './score';
@@ -85,13 +86,20 @@ export function recommend({
   const pickIds = new Set(picks.map((s) => s.candidate.restaurantId));
   const rest = eligible.filter((s) => !pickIds.has(s.candidate.restaurantId));
 
-  // 하단 "첫 후기" 구역은 **실측 도보 시간순**이다. 직선거리를 쓰지 않는다(§7).
-  firstReviewAll.sort(
-    (a, b) =>
-      (a.walkSeconds ?? 0) - (b.walkSeconds ?? 0) ||
-      a.restaurantId.localeCompare(b.restaurantId),
-  );
-  const firstReview = firstReviewAll.slice(0, rules.firstReviewLimit);
+  // 하단 "첫 후기" 구역은 **날짜와 조건을 씨앗으로 섞는다**.
+  //
+  // 도보순으로 고정하면 매번 같은 집만 나와 "안 가본 집을 꺼내 준다" 는 목적이 성립하지
+  // 않는다(§1·§2). 여기 있는 식당은 **이미 도보 상한을 통과했으므로** 어느 것을 앞에 둬도
+  // 조건을 어기지 않는다. 씨앗이 날짜라서 같은 날에는 흔들리지 않고(공유한 링크를 연 사람도
+  // 같은 목록을 본다) 다음 날에는 다른 집이 앞에 온다.
+  //
+  // 먼저 id 로 정렬해 **입력 순서에 의존하지 않게** 한 뒤 섞는다 — DB 가 행 순서를 바꿔도
+  // 같은 날 같은 조건이면 같은 결과여야 한다.
+  firstReviewAll.sort((a, b) => a.restaurantId.localeCompare(b.restaurantId));
+  const firstReview = seededShuffle(
+    firstReviewAll,
+    discoverySeed(criteria, now),
+  ).slice(0, rules.firstReviewLimit);
 
   return {
     picks,

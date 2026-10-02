@@ -202,19 +202,71 @@ describe('후기 0개 식당', () => {
     expect(result.firstReview).toHaveLength(3);
   });
 
-  test('도보 시간순으로 정렬하고 상한에서 자른 수를 알려준다', () => {
+  test('상한만큼만 보여주고 자른 수를 알려준다', () => {
     const result = recommend({
-      candidates: [
-        noReview(),
-        { ...noReview(), walkSeconds: 60 },
-        { ...noReview(), walkSeconds: 120 },
-      ].map((c, i) => ({ ...c, restaurantId: `n${i}` })),
+      candidates: [noReview(), noReview(), noReview()].map((c, i) => ({
+        ...c,
+        restaurantId: `n${i}`,
+      })),
       criteria: lunch(),
       rules: rules({ firstReviewLimit: 2 }),
       now: NOW,
     });
-    expect(result.firstReview.map((c) => c.walkSeconds)).toEqual([60, 120]);
+    expect(result.firstReview).toHaveLength(2);
     expect(result.firstReviewTruncated).toBe(1);
+  });
+
+  test('**매번 같은 집만 나오지 않게 섞는다** — 안 가본 집을 꺼내는 게 목적이다(§1·§2)', () => {
+    const many = Array.from({ length: 30 }, (_, i) => ({
+      ...noReview(),
+      restaurantId: `n${String(i).padStart(2, '0')}`,
+    }));
+    const pick = (now: Date) =>
+      recommend({
+        candidates: many,
+        criteria: lunch(),
+        rules: rules({ firstReviewLimit: 5 }),
+        now,
+      }).firstReview.map((c) => c.restaurantId);
+
+    // id 순으로 고정돼 있으면 발굴이 안 된다.
+    expect(pick(NOW)).not.toEqual(many.slice(0, 5).map((c) => c.restaurantId));
+    // 다음 날에는 다른 집이 앞에 온다.
+    expect(pick(NOW)).not.toEqual(pick(new Date('2026-10-03T12:00:00Z')));
+  });
+
+  test('같은 날 같은 조건이면 흔들리지 않는다 — 공유한 링크를 연 사람도 같은 목록을 본다', () => {
+    const many = Array.from({ length: 30 }, (_, i) => ({
+      ...noReview(),
+      restaurantId: `n${String(i).padStart(2, '0')}`,
+    }));
+    const pick = (now: Date) =>
+      recommend({
+        candidates: [...many].reverse(),
+        criteria: lunch(),
+        rules: rules({ firstReviewLimit: 5 }),
+        now,
+      }).firstReview.map((c) => c.restaurantId);
+
+    // 시각이 달라도, 입력 순서가 달라도 같은 날이면 같은 결과다.
+    expect(pick(new Date('2026-10-02T09:00:00'))).toEqual(
+      pick(new Date('2026-10-02T23:30:00')),
+    );
+  });
+
+  test('조건이 바뀌면 발굴 목록도 바뀐다', () => {
+    const many = Array.from({ length: 30 }, (_, i) => ({
+      ...noReview(),
+      restaurantId: `n${String(i).padStart(2, '0')}`,
+    }));
+    const pick = (headcount: number) =>
+      recommend({
+        candidates: many,
+        criteria: lunch({ headcount }),
+        rules: rules({ firstReviewLimit: 5 }),
+        now: NOW,
+      }).firstReview.map((c) => c.restaurantId);
+    expect(pick(4)).not.toEqual(pick(8));
   });
 });
 
