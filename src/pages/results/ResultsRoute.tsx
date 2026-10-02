@@ -110,6 +110,7 @@ export function ResultsRoute() {
       onFirstReviewClick={(restaurantId) =>
         navigate(`/restaurants/${restaurantId}`)
       }
+      onTabChange={(next) => next === 'community' && navigate('/community')}
     />
   );
 }

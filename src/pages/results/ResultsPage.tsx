@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AppHeader } from '@/shared/components/AppHeader';
+import { AppHeader, type AppTab } from '@/shared/components/AppHeader';
 import { formatWon } from '@/shared/utils';
 import { TicketCard } from './TicketCard';
 import type { RestaurantCardData, SearchConditions } from './types';
@@ -85,6 +85,7 @@ type ResultsPageProps = {
   unmeasuredWalkCount?: number;
   onEditConditions?: () => void;
   onFirstReviewClick?: (restaurantId: string) => void;
+  onTabChange?: (tab: AppTab) => void;
 };
 
 export function ResultsPage({
@@ -98,6 +99,7 @@ export function ResultsPage({
   unmeasuredWalkCount = 0,
   onEditConditions,
   onFirstReviewClick,
+  onTabChange,
 }: ResultsPageProps) {
   const [restOpen, setRestOpen] = useState(false);
 
@@ -106,7 +108,11 @@ export function ResultsPage({
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-[480px] flex-col">
-      <AppHeader activeTab="recommend" displayName={displayName} />
+      <AppHeader
+        activeTab="recommend"
+        displayName={displayName}
+        onTabChange={onTabChange}
+      />
       <ConditionBar conditions={conditions} onEdit={onEditConditions} />
 
       <main className="pb-7">

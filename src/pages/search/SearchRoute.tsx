@@ -30,6 +30,7 @@ export function SearchRoute() {
           : (note.data ?? '불러오는 중…')
       }
       onSubmit={submit}
+      onTabChange={(next) => next === 'community' && navigate('/community')}
     />
   );
 }

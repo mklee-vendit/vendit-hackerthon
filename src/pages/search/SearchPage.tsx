@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AppHeader } from '@/shared/components/AppHeader';
+import { AppHeader, type AppTab } from '@/shared/components/AppHeader';
 import {
   DEFAULT_BUDGET,
   DEFAULT_WALK_MINUTES,
@@ -21,11 +21,13 @@ type SearchPageProps = {
   collectionNote: string;
   /** 누른 시점의 조건을 그대로 넘긴다. 화면은 조건을 어디로 보낼지 모른다 */
   onSubmit?: (criteria: SearchCriteria) => void;
+  onTabChange?: (tab: AppTab) => void;
 };
 export function SearchPage({
   displayName,
   collectionNote,
   onSubmit,
+  onTabChange,
 }: SearchPageProps) {
   const [situation, setSituation] = useState<Situation>('lunch');
   const [headcount, setHeadcount] = useState(6);
@@ -40,7 +42,11 @@ export function SearchPage({
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-[480px] flex-col">
-      <AppHeader activeTab="recommend" displayName={displayName} />
+      <AppHeader
+        activeTab="recommend"
+        displayName={displayName}
+        onTabChange={onTabChange}
+      />
 
       <main className="flex flex-1 flex-col gap-5 px-5 py-6">
         <div>

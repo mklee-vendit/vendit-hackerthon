@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import { CommunityRoute } from '@/pages/community/CommunityRoute';
 import { LoginPage } from '@/pages/LoginPage';
 import { previewRoutes } from '@/pages/preview/previewRoutes';
 import { RestaurantRoute } from '@/pages/restaurant/RestaurantRoute';
@@ -21,6 +22,14 @@ export const router = createBrowserRouter([
     element: (
       <RequireMember>
         <ResultsRoute />
+      </RequireMember>
+    ),
+  },
+  {
+    path: '/community',
+    element: (
+      <RequireMember>
+        <CommunityRoute />
       </RequireMember>
     ),
   },
