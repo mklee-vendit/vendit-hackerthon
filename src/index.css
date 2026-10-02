@@ -6,45 +6,85 @@
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-border: var(--border);
+  --color-line: var(--line);
+  --color-dash: var(--dash);
+  --color-track: var(--track);
   --color-content: var(--content);
   --color-content-muted: var(--content-muted);
   --color-brand: var(--brand);
   --color-brand-content: var(--brand-content);
+  --color-ink: var(--ink);
+  --color-ink-raised: var(--ink-raised);
+  --color-ink-content: var(--ink-content);
+  --color-ink-muted: var(--ink-muted);
   --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
   --color-success: var(--success);
+  --color-naver: #03c75a;
 
   --shadow-modal: 0 4px 24px 0 var(--shadow-modal-color);
+  --shadow-ticket: 0 1px 0 var(--shadow-ticket-color);
 
-  --font-sans:
-    "Pretendard Variable", Pretendard, -apple-system, system-ui, "Segoe UI",
-    Roboto, sans-serif;
+  --font-sans: "IBM Plex Sans KR", -apple-system, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "IBM Plex Sans KR", ui-monospace, monospace;
+  --font-display: "Black Han Sans", "IBM Plex Sans KR", sans-serif;
 }
 
+/* 값은 최종 목업(벤파티 Mockups · 최종)에서 그대로 옮겼다 — 구현된 프레임
+   1a(로그인) · 1b(검색) · 1c(결과)에서 쓰인 색만 쓴다.
+
+   **최종 시안에 빨강·주황이 한 색도 없다**(전체 색을 색상환으로 훑어 확인했다).
+   그래서 danger 도 보라 계열이다 — 여기서 danger 는 "주의 안내"(로그인 실패 배너)이고
+   "파괴적 동작"이 아니다. 삭제 확인 같은 데 쓸 색이 필요하면 이 토큰을 빌리지 말고
+   새로 받으세요. */
 :root {
-  --bg: oklch(98.5% 0.002 247);
-  --surface: oklch(100% 0 0);
-  --border: oklch(92% 0.004 247);
-  --content: oklch(21% 0.012 254);
-  --content-muted: oklch(55% 0.015 254);
-  --brand: oklch(55% 0.19 258);
-  --brand-content: oklch(100% 0 0);
-  --danger: oklch(58% 0.21 25);
+  --bg: #f1eef7; /* 1a 프레임 배경 */
+  --surface: #fdfcff; /* 1a 카드 */
+  --border: #e2ddec;
+  --line: #cfc9de; /* 1b·1c 에서 가장 많이 쓰인 선 */
+  --dash: #ddd7ea;
+  --track: #e4dfee;
+  --content: #1e1a2b;
+  --content-muted: #5b5670; /* 1a~1c 본문 보조 */
+  --brand: #6d3fd1;
+  --brand-content: #ffffff;
+  --ink: #1e1a2b; /* 1a 로그인 버튼 */
+  --ink-raised: #36304a; /* 1c 어두운 바 */
+  --ink-content: #fdfcff;
+  --ink-muted: #8a85a0;
+  --danger: #522ba6; /* 1a 안내 배너 글자 */
+  --danger-soft: #ede5fb; /* 1a 안내 배너 배경 */
+  /* 최종 시안에 성공 색이 없다. 토스트용으로 남겨둔 임시값이며 시안 근거가 없다. */
   --success: oklch(58% 0.14 155);
-  --shadow-modal-color: oklch(21% 0.012 254 / 0.16);
+  --shadow-modal-color: rgb(30 26 43 / 0.16);
+  --shadow-ticket-color: rgb(
+    30 26 43 / 0.06
+  ); /* 1a: 0 1px 0 rgba(30,26,43,.06) */
 }
 
+/* 최종 시안에도 다크 시안이 없다 — 같은 색상 축을 어둡게 뒤집은 **파생값**이다.
+   brand 만 시안에 실재하는 색을 쓴다(#b79bf7 — 어두운 면 위 액센트). 확정 전까지 임시. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: oklch(17% 0.012 254);
-    --surface: oklch(22% 0.014 254);
-    --border: oklch(30% 0.015 254);
-    --content: oklch(96% 0.004 247);
-    --content-muted: oklch(68% 0.013 254);
-    --brand: oklch(68% 0.17 258);
-    --brand-content: oklch(18% 0.02 258);
-    --danger: oklch(68% 0.18 25);
+    --bg: #16141d;
+    --surface: #201d2a;
+    --border: #302b3e;
+    --line: #433d54;
+    --dash: #373144;
+    --track: #2a2535;
+    --content: #f1eef7;
+    --content-muted: #a9a3b8;
+    --brand: #b79bf7;
+    --brand-content: #1e1a2b;
+    --ink: #f1eef7;
+    --ink-raised: #ddd7ea;
+    --ink-content: #1e1a2b;
+    --ink-muted: #6e6880;
+    --danger: #c7a8ff;
+    --danger-soft: #2c2140;
     --success: oklch(70% 0.14 155);
-    --shadow-modal-color: oklch(0% 0 0 / 0.5);
+    --shadow-modal-color: rgb(0 0 0 / 0.5);
+    --shadow-ticket-color: rgb(0 0 0 / 0.3);
   }
 }
 
