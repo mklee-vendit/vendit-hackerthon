@@ -4,6 +4,7 @@
  *   bun scripts/collect-naver.ts
  *   bunx supabase db query --linked -f supabase/data/naver.generated.sql
  *   bun scripts/collect-naver.ts --sql-only   # 수집 중에 모인 만큼만 SQL 로
+ *   bun scripts/collect-naver.ts --shard 0/3 --reverse   # 병렬 · 끝에서부터
  *
  * 대상은 `restaurants.generated.sql` 의 식당 목록이다(브라우저 키로는 restaurants 를 못 읽는다).
  * 식당마다 요청 2번(이름+좌표 검색 → 메뉴 페이지). 결과는 `supabase/data/.naver-cache/` 에
@@ -104,14 +105,15 @@ async function collect(r: Restaurant): Promise<Result> {
 const SQL_ONLY = process.argv.includes('--sql-only');
 // --shard 0/2: 목록을 나눠 프로세스 여러 개로 돈다. 캐시 파일이 식당별이라 서로 겹치지 않는다.
 const shardArg = process.argv.indexOf('--shard');
-const [SHARD, SHARDS] = (
-  shardArg === -1 ? '0/1' : process.argv[shardArg + 1]
-)
+const [SHARD, SHARDS] = (shardArg === -1 ? '0/1' : process.argv[shardArg + 1])
   .split('/')
   .map(Number);
 mkdirSync(CACHE, { recursive: true });
 let blocks = 0;
-for (const [i, r] of SQL_ONLY ? [] : restaurants.entries()) {
+// --reverse: 목록 끝에서부터. 다른 PC 와 나눠 돌 때 앞에서부터 도는 쪽과 가운데서 만난다.
+const order = SQL_ONLY ? [] : [...restaurants.entries()];
+if (process.argv.includes('--reverse')) order.reverse();
+for (const [i, r] of order) {
   const file = resolve(CACHE, `${r.kakao_place_id}.json`);
   if (i % SHARDS !== SHARD || existsSync(file)) continue;
   try {
