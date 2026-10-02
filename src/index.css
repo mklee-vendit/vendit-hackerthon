@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/* 토큰은 CSS 변수로 한 겹 넣고 @theme 가 그걸 참조한다 —
+   그래야 다크 모드에서 유틸리티 이름(bg-surface 등)을 그대로 두고 값만 갈 수 있다. */
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-content: var(--content);
+  --color-content-muted: var(--content-muted);
+  --color-brand: var(--brand);
+  --color-brand-content: var(--brand-content);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+
+  --shadow-modal: 0 4px 24px 0 var(--shadow-modal-color);
+
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, system-ui, "Segoe UI",
+    Roboto, sans-serif;
+}
+
+:root {
+  --bg: oklch(98.5% 0.002 247);
+  --surface: oklch(100% 0 0);
+  --border: oklch(92% 0.004 247);
+  --content: oklch(21% 0.012 254);
+  --content-muted: oklch(55% 0.015 254);
+  --brand: oklch(55% 0.19 258);
+  --brand-content: oklch(100% 0 0);
+  --danger: oklch(58% 0.21 25);
+  --success: oklch(58% 0.14 155);
+  --shadow-modal-color: oklch(21% 0.012 254 / 0.16);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: oklch(17% 0.012 254);
+    --surface: oklch(22% 0.014 254);
+    --border: oklch(30% 0.015 254);
+    --content: oklch(96% 0.004 247);
+    --content-muted: oklch(68% 0.013 254);
+    --brand: oklch(68% 0.17 258);
+    --brand-content: oklch(18% 0.02 258);
+    --danger: oklch(68% 0.18 25);
+    --success: oklch(70% 0.14 155);
+    --shadow-modal-color: oklch(0% 0 0 / 0.5);
+  }
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg text-content font-sans antialiased;
+  }
+}

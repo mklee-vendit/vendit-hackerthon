@@ -1,0 +1,5 @@
+# biome 가 lineEnding: "lf" 로 포맷하므로 작업 트리도 LF 로 고정한다.
+# 안 하면 Windows(core.autocrlf=true) 에서 클론한 사람은 전 파일이 포맷 diff 로 뜬다.
+* text=auto eol=lf
+
+bun.lock linguist-generated=true

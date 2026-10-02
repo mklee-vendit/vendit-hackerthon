@@ -1,0 +1,25 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.sw?
+
+# Env — 키가 들어가므로 전부 제외하고 .env.example 만 커밋한다
+.env
+.env.*
+!.env.example
+
+# Claude local settings
+.claude/settings.local.json
