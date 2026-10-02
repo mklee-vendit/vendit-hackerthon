@@ -23,3 +23,6 @@ dist-ssr
 
 # Claude local settings
 .claude/settings.local.json
+
+# 네이버 수집 중간 결과 — 다시 돌릴 때 이어서 하려고 남긴다
+supabase/data/.naver-cache/
