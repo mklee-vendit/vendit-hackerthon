@@ -19,6 +19,7 @@ Supabase 가 맡습니다.
 
 | | |
 |---|---|
+| Repository | `github.com/mklee-vendit/vendit-hackerthon` (`master`) |
 | Framework Preset | Vite |
 | Build Command | `bun run build` (기본값으로 두면 `vite build` 만 돌아 타입 검사가 빠진다) |
 | Output Directory | `dist` |
@@ -46,20 +47,29 @@ Ready 상태와 실제 응답을 보고 나서 완료로 칩니다.
 
 `supabase/config.toml` 의 `[auth]` 를 고치고 `supabase config push` 로 올립니다.
 
+**적용 완료** (2026-10-02, `config push` 로 올라갔습니다). 올라간 값:
+
 ```toml
-site_url = "https://<배포-도메인>"
+site_url = "https://vendit-hackerthon.vercel.app"
 additional_redirect_urls = [
-  "http://localhost:5173",
   "http://127.0.0.1:5173",
-  "https://<배포-도메인>/**",
-  "https://*-<vercel-팀-슬러그>.vercel.app/**"   # 프리뷰 배포
+  "http://localhost:5173",
+  "https://vendit-hackerthon.vercel.app/**",
+  "https://vendit-hackerthon-*.vercel.app/**",   # 프리뷰 배포
 ]
 ```
 
-- **`site_url`** 은 `redirectTo` 가 없을 때 돌아가는 기본 주소입니다. 지금은
-  `http://127.0.0.1:5173` 로 올라가 있으니 **배포 전에 반드시 바꿔야 합니다.**
-- 와일드카드는 `*`(구분자 `.`·`/` 를 넘지 않음) 과 `**`(아무거나) 를 씁니다. 프리뷰 배포는
-  URL 이 매번 달라지므로 와일드카드가 필요합니다.
+- 코드는 항상 `redirectTo: window.location.origin` 을 넘깁니다(`shared/lib/auth/signIn.ts`).
+  그 주소가 허용 목록에 없으면 Supabase 는 **거부 메시지 대신** `site_url` 로 돌려보냅니다 —
+  그래서 목록이 틀렸을 때의 증상이 "로그인했는데 엉뚱한 곳으로 갔다" 입니다.
+- `site_url` 은 그 폴백이자 메일 링크의 기준 주소입니다. 로컬은 `redirectTo` 로 돌아오므로
+  이 값을 배포 도메인으로 바꿔도 개발에 지장이 없습니다.
+- 와일드카드는 `*`(구분자 `.`·`/` 를 넘지 않음) 과 `**`(아무거나) 입니다. 프리뷰 배포는 URL 이
+  매번 달라지므로 필요하고, 슬러그를 몰라도 `vendit-hackerthon-*` 로 **우리 프로젝트만** 걸립니다.
+
+`config push` 는 `[auth.external.google]` 의 값도 함께 올립니다. `.env.local` 을 읽히지 않고
+돌리면 client_id 가 빈 값으로 덮일 수 있으니, 환경변수를 올린 상태에서 `supabase config diff` 로
+**바뀔 항목이 의도한 것뿐인지** 먼저 확인하세요.
 
 Google Cloud Console 쪽은 **바꿀 것이 없습니다** — 구글이 돌아오는 곳은 우리 도메인이 아니라
 `https://<project-ref>.supabase.co/auth/v1/callback` 이고, 그건 이미 등록돼 있습니다.
@@ -78,5 +88,4 @@ Google Cloud Console 쪽은 **바꿀 것이 없습니다** — 구글이 돌아�
 
 ## 5. 아직 안 정한 것
 
-- **Vercel scope** (§13) — jhey 지정
-- 커스텀 도메인 사용 여부
+- 커스텀 도메인 사용 여부 — 지금은 `vendit-hackerthon.vercel.app`
