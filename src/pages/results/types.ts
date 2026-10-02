@@ -1,3 +1,5 @@
+import type { NaverMapTarget } from '@/shared/lib/map/naverMap';
+
 export type MenuItem = { name: string; price: number };
 
 export type LatestReview = { body: string; author: string; when: string };
@@ -30,8 +32,8 @@ export type RestaurantCardData = {
   unconfirmed: string[];
   photoUrl?: string;
   latestReview: LatestReview | null;
-  /** 네이버 길찾기 주소. 좌표가 없으면 null 이고, 그때는 **버튼을 그리지 않는다** */
-  directionsUrl: string | null;
+  /** 네이버 버튼이 갈 곳. 업체 페이지가 1순위, 없으면 좌표 길찾기. 둘 다 없으면 버튼을 안 그린다 */
+  naverMap: NaverMapTarget | null;
 };
 
 export type SearchConditions = {

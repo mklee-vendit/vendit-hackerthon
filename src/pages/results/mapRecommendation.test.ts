@@ -32,6 +32,8 @@ const candidate = (over: Partial<Candidate> = {}): Candidate => {
     photoPath: null,
     lon: 127.03,
     lat: 37.5,
+    naverPlaceId: null,
+    naverPrices: null,
     ...over,
   };
 };

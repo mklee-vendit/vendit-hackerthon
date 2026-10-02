@@ -56,6 +56,14 @@ export type Candidate = {
    */
   lon: number | null;
   lat: number | null;
+  /** 네이버 업체 id. 없으면 아직 못 찾았거나 수집 전이다 */
+  naverPlaceId: string | null;
+  /**
+   * **네이버 메뉴판** 가격 집계. 후기의 `prices` 와 **다른 출처**다(§8) — 저쪽은 벤더가 낸
+   * 돈이고 이쪽은 가게가 내건 값이다. 후기가 쌓이기 전 예산 판정에만 쓴다.
+   * 숫자로 파싱된 가격이 하나도 없으면 null.
+   */
+  naverPrices: { min: number; median: number; count: number } | null;
 };
 
 export type SearchCriteria = {

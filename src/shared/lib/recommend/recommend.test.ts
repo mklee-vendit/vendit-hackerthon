@@ -31,6 +31,8 @@ const candidate = (over: Partial<Candidate> = {}): Candidate => {
     photoPath: null,
     lon: 127.03,
     lat: 37.5,
+    naverPlaceId: null,
+    naverPrices: null,
     ...over,
   };
 };
@@ -269,6 +271,93 @@ describe('후기 0개 식당', () => {
         now: NOW,
       }).firstReview.map((c) => c.restaurantId);
     expect(pick(4)).not.toEqual(pick(8));
+  });
+});
+
+describe('네이버 메뉴판 기준 예산 — 후기가 없어도 본다', () => {
+  const noReview = (over: Partial<Candidate> = {}) =>
+    candidate({
+      reviewCount: 0,
+      recommendCount: 0,
+      avgRating: null,
+      partySizeMax: null,
+      latestReviewAt: null,
+      prices: null,
+      ...over,
+    });
+
+  test('예산 이하 메뉴가 **하나도 없으면** 하단 구역에도 올리지 않는다', () => {
+    const v = judge(
+      noReview({ naverPrices: { min: 15_000, median: 22_000, count: 20 } }),
+      lunch({ budgetPerPerson: 10_000 }),
+      rules(),
+    );
+    expect(v).toEqual({ kind: 'blocked', reasons: ['price'] });
+  });
+
+  test('예산 이하 메뉴가 하나라도 있으면 통과한다 — min 은 잘못 숨기지 않는 쪽이다', () => {
+    const v = judge(
+      noReview({ naverPrices: { min: 9000, median: 22_000, count: 20 } }),
+      lunch({ budgetPerPerson: 10_000 }),
+      rules(),
+    );
+    expect(v.kind).toBe('noReviews');
+  });
+
+  test('median 으로 바꾸면 더 조인다 — 같은 식당이 걸린다', () => {
+    const c = noReview({
+      naverPrices: { min: 9000, median: 22_000, count: 20 },
+    });
+    const criteria = lunch({ budgetPerPerson: 10_000 });
+    expect(judge(c, criteria, rules({ menuPriceAggregate: 'median' }))).toEqual(
+      {
+        kind: 'blocked',
+        reasons: ['price'],
+      },
+    );
+  });
+
+  // 메뉴판을 아직 못 긁은 식당이 **조용히 사라지면 안 된다**. 모르는 것은 판정하지 않는다.
+  test('메뉴판이 없으면 예산으로 거르지 않는다', () => {
+    expect(judge(noReview({ naverPrices: null }), lunch(), rules()).kind).toBe(
+      'noReviews',
+    );
+  });
+
+  test('예산과 같으면 통과한다 (≤ 경계)', () => {
+    const v = judge(
+      noReview({ naverPrices: { min: 10_000, median: 10_000, count: 3 } }),
+      lunch({ budgetPerPerson: 10_000 }),
+      rules(),
+    );
+    expect(v.kind).toBe('noReviews');
+  });
+
+  // 메뉴판과 후기가 둘 다 걸려도 "1인 예산" 은 **한 번만** 세어야 한다. 두 번 세면
+  // "맞는 곳 없음" 화면의 숫자가 식당 수보다 커진다.
+  test('후기와 메뉴판이 둘 다 예산을 넘겨도 price 는 한 번만', () => {
+    const v = judge(
+      candidate({
+        prices: { min: 20_000, max: 30_000, avg: 25_000, median: 25_000 },
+        naverPrices: { min: 18_000, median: 24_000, count: 10 },
+      }),
+      lunch({ budgetPerPerson: 10_000 }),
+      rules(),
+    );
+    expect(v).toEqual({ kind: 'blocked', reasons: ['price'] });
+  });
+
+  test('걸린 식당은 recommend 의 blocked 집계에 1곳으로 들어간다', () => {
+    const result = recommend({
+      candidates: [
+        noReview({ naverPrices: { min: 15_000, median: 20_000, count: 5 } }),
+      ],
+      criteria: lunch({ budgetPerPerson: 10_000 }),
+      rules: rules(),
+      now: NOW,
+    });
+    expect(result.firstReview).toEqual([]);
+    expect(result.blocked).toEqual([{ reason: 'price', count: 1 }]);
   });
 });
 

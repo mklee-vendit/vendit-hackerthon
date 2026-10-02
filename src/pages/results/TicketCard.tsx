@@ -104,13 +104,18 @@ export function TicketCard({
               <h3 className="text-lg font-bold tracking-[-0.3px]">{r.name}</h3>
               <span className="text-xs text-content-muted">{r.category}</span>
             </div>
-            {/* 좌표가 없으면 버튼을 아예 그리지 않는다 — 눌러도 아무 일도 없는 버튼보다 낫다 */}
-            {r.directionsUrl && (
+            {/* 갈 곳이 없으면 버튼을 아예 그리지 않는다 — 눌러도 아무 일도 없는 버튼보다 낫다 */}
+            {r.naverMap && (
               <a
-                href={r.directionsUrl}
+                href={r.naverMap.url}
                 target="_blank"
                 rel="noreferrer"
-                aria-label={`${r.name} 네이버 길찾기`}
+                // 가는 곳이 다르면 라벨도 달라야 한다 — 업체 페이지와 경로 화면은 다른 화면이다
+                aria-label={
+                  r.naverMap.kind === 'place'
+                    ? `${r.name} 네이버 지도에서 보기`
+                    : `${r.name} 네이버 길찾기`
+                }
                 className="-my-1.5 -mr-1.5 flex size-11 flex-none items-center justify-center rounded-full bg-naver"
               >
                 <NaverDirectionsIcon />

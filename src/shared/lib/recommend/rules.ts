@@ -11,6 +11,13 @@
 /** 1인 가격을 후기들에서 어떻게 접을지. */
 export type PriceAggregate = 'min' | 'max' | 'avg' | 'median';
 
+/** 네이버 메뉴판 가격 중 예산과 견줄 값. */
+export type MenuPriceAggregate =
+  /** 가장 싼 메뉴. "예산 이하로 먹을 수 있는 메뉴가 하나라도 있나" */
+  | 'min'
+  /** 중앙값. "보통 시키면 예산을 넘나" */
+  | 'median';
+
 /** 제약 태그가 후기끼리 엇갈릴 때의 판정. */
 export type DietConflictRule =
   /** 한 명이라도 "불가" 라고 했으면 위반으로 본다 */
@@ -20,6 +27,8 @@ export type DietConflictRule =
 
 export type RecommendRules = {
   priceAggregate: PriceAggregate;
+  /** 네이버 메뉴판으로 예산을 볼 때 쓸 값. 후기가 없는 식당에만 적용된다 */
+  menuPriceAggregate: MenuPriceAggregate;
   dietConflict: DietConflictRule;
   /** 추천픽으로 상단에 고정할 개수 */
   pickCount: number;
@@ -39,6 +48,11 @@ export const PROVISIONAL_RULES: RecommendRules = {
   // ⚠️ 잠정 — 중앙값을 자리값으로 둔 이유: 한 명이 비싼 코스를 먹은 후기가 전체 판정을
   // 흔들지 않는다. 평균·최솟값·최댓값 중 무엇이 맞는지는 결정 사항이다.
   priceAggregate: 'median',
+
+  // ⚠️ 잠정 — 'min' 은 **잘못 숨기지 않는** 쪽이다: 메뉴판에 예산 이하가 하나라도 있으면
+  // 통과한다. 대신 거의 다 통과한다 — 실측해 보니 식당별 최저가가 사이드·주류·추가 메뉴인
+  // 경우가 많았다("미니모밀추가 3,000" · "맥주 및 음료 10,000"). 더 조이려면 'median'.
+  menuPriceAggregate: 'min',
 
   // ⚠️ 잠정 — 보수적인 쪽을 자리값으로 뒀다. 제약은 "못 먹는다" 가 틀렸을 때의 피해가
   // "먹을 수 있다" 가 틀렸을 때보다 크다.

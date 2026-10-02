@@ -32,6 +32,12 @@ export type CandidateRow = {
   /** 길찾기 링크용. `restaurants` 에서 not null 이지만 뷰를 거치므로 타입은 열어 둔다 */
   lon: number | string | null;
   lat: number | string | null;
+  /** 네이버 업체 id. 수집 전이거나 못 찾았으면 null */
+  naver_place_id: string | null;
+  /** 네이버 메뉴판 가격 집계. 숫자로 파싱된 가격이 없으면 전부 null */
+  naver_price_min: number | string | null;
+  naver_price_median: number | string | null;
+  naver_price_count: number | string | null;
   /** 언급이 많은 순 → 최근 순으로 정렬돼 온다. 몇 개를 보여줄지는 화면이 자른다 */
   menu: {
     name: string;
@@ -55,6 +61,20 @@ export function toNumber(
 /** 개수처럼 "없으면 0" 이 맞는 값에만 쓴다. */
 function toCount(value: number | string | null | undefined): number {
   return toNumber(value) ?? 0;
+}
+
+/**
+ * 메뉴판 가격 집계. **셋 중 하나라도 비면 만들지 않는다** — 반쪽짜리 집계로 예산을 판정하면
+ * 어느 쪽으로 틀렸는지도 모르게 된다.
+ */
+function naverPrices(row: CandidateRow): Candidate['naverPrices'] {
+  const min = toNumber(row.naver_price_min);
+  const median = toNumber(row.naver_price_median);
+  const count = toNumber(row.naver_price_count);
+  if (min === null || median === null || count === null || count <= 0) {
+    return null;
+  }
+  return { min, median, count };
 }
 
 export function toCandidate(row: CandidateRow): Candidate {
@@ -118,5 +138,7 @@ export function toCandidate(row: CandidateRow): Candidate {
     photoPath: row.photo_path,
     lon: toNumber(row.lon),
     lat: toNumber(row.lat),
+    naverPlaceId: row.naver_place_id,
+    naverPrices: naverPrices(row),
   };
 }

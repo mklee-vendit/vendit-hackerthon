@@ -1,5 +1,5 @@
 import { SITUATION_LABEL } from '@/shared/constants/search';
-import { naverDirectionsUrl } from '@/shared/lib/map/naverDirections';
+import { naverMapTarget } from '@/shared/lib/map/naverMap';
 import {
   type BlockReason,
   type Candidate,
@@ -56,6 +56,14 @@ export function toMenuItems(
   }));
 }
 
+const toNaverMap = (candidate: Candidate) =>
+  naverMapTarget({
+    name: candidate.name,
+    lon: candidate.lon,
+    lat: candidate.lat,
+    naverPlaceId: candidate.naverPlaceId,
+  });
+
 export function toCardData(
   scored: Scored,
   rank: number,
@@ -82,11 +90,7 @@ export function toCardData(
     unconfirmed: scored.unconfirmed.map((kind) => UNCONFIRMED_LABEL[kind]),
     photoUrl: photoPublicUrl(candidate.photoPath),
     latestReview,
-    directionsUrl: naverDirectionsUrl(
-      candidate.name,
-      candidate.lon,
-      candidate.lat,
-    ),
+    naverMap: toNaverMap(candidate),
   };
 }
 
@@ -120,11 +124,7 @@ export function toUnreviewedCardData(candidate: Candidate): RestaurantCardData {
     unconfirmed: [],
     photoUrl: photoPublicUrl(candidate.photoPath),
     latestReview: null,
-    directionsUrl: naverDirectionsUrl(
-      candidate.name,
-      candidate.lon,
-      candidate.lat,
-    ),
+    naverMap: toNaverMap(candidate),
   };
 }
 

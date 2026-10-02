@@ -7,7 +7,8 @@ import { fetchAllPages } from './paginate';
 const COLUMNS = `id, name, category, walk_seconds,
   review_count, recommend_count, avg_rating, party_size_max, latest_review_at,
   price_min, price_max, price_avg, price_median, diet_tags, menu, photo_path,
-  lon, lat`;
+  lon, lat, naver_place_id, naver_price_min, naver_price_median,
+  naver_price_count`;
 
 const fetchCandidatePage = async ({
   from,
