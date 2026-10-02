@@ -37,14 +37,24 @@ type TicketCardProps = {
   /** 추천픽은 순위 숫자를 브랜드색으로, 나머지는 본문색으로. */
   highlighted?: boolean;
   onDirectionsClick?: () => void;
+  onFirstReviewClick?: () => void;
 };
 
-/** 1c 식권 카드 — 위는 식당과 근거 숫자, 절취선 아래는 최근 후기 원문. */
+/**
+ * 1c 식권 카드 — 위는 식당과 근거 숫자, 절취선 아래는 최근 후기 원문.
+ *
+ * **후기가 0개인 식당도 같은 카드로 보여준다.** 목록으로 따로 빼면 "아직 아무것도 없는
+ * 서비스" 처럼 보이는데, 식당 자체는 이미 있고 도보 시간도 재 뒀다. 다만 가격·별점·추천
+ * 비율은 **후기에서 나오는 값이라 비워 두고**(§10.2) 절취선 아래에 그 사실을 적는다.
+ */
 export function TicketCard({
   restaurant: r,
   highlighted = false,
   onDirectionsClick,
+  onFirstReviewClick,
 }: TicketCardProps) {
+  const unreviewed = r.reviewCount === 0;
+
   return (
     <article className="rounded-[18px] bg-surface shadow-ticket">
       {/* 사진 위 오버레이는 사진 색과 무관하게 읽혀야 해서 다크 모드에서도 고정색이다. */}
@@ -59,28 +69,37 @@ export function TicketCard({
             사진 없음
           </span>
         )}
-        <div className="mt-auto grid grid-cols-3 gap-2 bg-linear-to-b from-ink/0 to-ink/84 to-45% px-3.5 pt-[30px] pb-3 font-mono text-ink-content">
-          <Stat
-            label="평균 별점"
-            value={r.avgStar === null ? '—' : `★ ${r.avgStar.toFixed(1)}`}
-          />
-          <Stat
-            label="추천 비율"
-            value={r.recommendRate === null ? '—' : `${r.recommendRate}%`}
-          />
-          <Stat label="후기 수" value={`${r.reviewCount}개`} />
+        <div className="mt-auto bg-linear-to-b from-ink/0 to-ink/84 to-45% px-3.5 pt-[30px] pb-3 font-mono text-ink-content">
+          {unreviewed ? (
+            // 숫자를 0 으로 채우지 않는다 — ★0.0 · 0% 는 "나쁜 식당" 이라는 다른 뜻이다.
+            <div className="text-[13px] leading-tight">아직 후기가 없어요</div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              <Stat
+                label="평균 별점"
+                value={r.avgStar === null ? '—' : `★ ${r.avgStar.toFixed(1)}`}
+              />
+              <Stat
+                label="추천 비율"
+                value={r.recommendRate === null ? '—' : `${r.recommendRate}%`}
+              />
+              <Stat label="후기 수" value={`${r.reviewCount}개`} />
+            </div>
+          )}
         </div>
       </div>
 
       <div className="flex gap-3.5 px-[18px] pt-3.5 pb-4">
-        <div
-          className={cn(
-            'min-w-[26px] flex-none font-display text-[44px] leading-[0.9]',
-            highlighted ? 'text-brand' : 'text-content',
-          )}
-        >
-          {r.rank}
-        </div>
+        {!unreviewed && (
+          <div
+            className={cn(
+              'min-w-[26px] flex-none font-display text-[44px] leading-[0.9]',
+              highlighted ? 'text-brand' : 'text-content',
+            )}
+          >
+            {r.rank}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
@@ -135,19 +154,36 @@ export function TicketCard({
         </div>
       </div>
 
-      {r.latestReview && (
+      {(r.latestReview || unreviewed) && (
         <>
           <div className="relative mx-4 border-t-2 border-dashed border-dash">
             <span className="absolute -top-3 -left-[27px] size-[22px] rounded-full bg-bg" />
             <span className="absolute -top-3 -right-[27px] size-[22px] rounded-full bg-bg" />
           </div>
           <div className="px-[18px] pt-3.5 pb-[18px]">
-            <p className="text-sm leading-[1.55] text-pretty">
-              “{r.latestReview.body}”
-            </p>
-            <p className="mt-1.5 text-xs text-content-muted">
-              최근 후기 · {r.latestReview.author} · {r.latestReview.when}
-            </p>
+            {r.latestReview ? (
+              <>
+                <p className="text-sm leading-[1.55] text-pretty">
+                  “{r.latestReview.body}”
+                </p>
+                <p className="mt-1.5 text-xs text-content-muted">
+                  최근 후기 · {r.latestReview.author} · {r.latestReview.when}
+                </p>
+              </>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[13px] leading-[1.5] text-content-muted">
+                  가격·단체 정보를 몰라 판정하지 못했어요
+                </p>
+                <button
+                  type="button"
+                  onClick={onFirstReviewClick}
+                  className="flex-none text-[13px] font-semibold text-brand"
+                >
+                  첫 후기 쓰기 →
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}

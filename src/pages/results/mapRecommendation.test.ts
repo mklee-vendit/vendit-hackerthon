@@ -136,6 +136,27 @@ describe('toResultsViewModel', () => {
     ]);
   });
 
+  test('후기 0개 식당도 **같은 식권 카드**로 그릴 수 있게 나온다', () => {
+    const noReview = candidate({
+      reviewCount: 0,
+      recommendCount: 0,
+      avgRating: null,
+      partySizeMax: null,
+      latestReviewAt: null,
+      prices: null,
+      walkSeconds: 240,
+    });
+    const [card] = view([noReview]).firstReviewCards;
+    expect(card.name).toBe(noReview.name);
+    expect(card.walkMinutes).toBe(4);
+    // 0 으로 채우면 ★0.0 · 0% 가 되어 "나쁜 식당" 이라는 다른 뜻이 된다.
+    expect(card.avgStar).toBeNull();
+    expect(card.recommendRate).toBeNull();
+    expect(card.pricePerPerson).toBeNull();
+    expect(card.reviewCount).toBe(0);
+    expect(card.latestReview).toBeNull();
+  });
+
   test('걸린 조건이 사람이 읽는 말로 온다 (통과 0곳일 때 쓴다)', () => {
     const vm = view([candidate({ walkSeconds: 40 * 60 })]);
     expect(vm.restaurants).toHaveLength(0);

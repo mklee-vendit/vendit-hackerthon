@@ -79,6 +79,29 @@ export function toFirstReviewItem(candidate: Candidate): FirstReviewItem {
   };
 }
 
+/**
+ * 후기 0개 식당을 **같은 식권 카드**로 그리기 위한 모양.
+ *
+ * 가격·별점·추천 비율은 후기에서 나오는 값이라 전부 null 이다 — 0 으로 채우면 ★0.0 · 0% 가
+ * 되어 "나쁜 식당" 이라는 **다른 뜻**이 된다(§10.2). 순위도 없다(점수가 없으므로).
+ */
+export function toUnreviewedCardData(candidate: Candidate): RestaurantCardData {
+  return {
+    id: candidate.restaurantId,
+    rank: 0,
+    name: candidate.name,
+    category: candidate.category,
+    walkMinutes: toWalkMinutes(candidate.walkSeconds),
+    pricePerPerson: null,
+    avgStar: null,
+    recommendRate: null,
+    reviewCount: 0,
+    menu: [],
+    unconfirmed: [],
+    latestReview: null,
+  };
+}
+
 export function toConditions(criteria: SearchCriteria): SearchConditions {
   return {
     situationLabel: SITUATION_LABEL[criteria.situation],
@@ -94,6 +117,8 @@ export type ResultsViewModel = {
   restaurants: RestaurantCardData[];
   pickCount: number;
   firstReview: FirstReviewItem[];
+  /** 같은 목록을 식권 카드로도 그릴 수 있게 */
+  firstReviewCards: RestaurantCardData[];
   firstReviewTruncated: number;
   /** 통과 0곳일 때 보여줄 "걸린 조건". 사람이 읽는 말로 바꿔 둔다 */
   blocked: { label: string; count: number }[];
@@ -126,6 +151,7 @@ export function toResultsViewModel({
     ),
     pickCount: recommendation.picks.length,
     firstReview: recommendation.firstReview.map(toFirstReviewItem),
+    firstReviewCards: recommendation.firstReview.map(toUnreviewedCardData),
     firstReviewTruncated: recommendation.firstReviewTruncated,
     blocked: recommendation.blocked.map(({ reason, count }) => ({
       label: BLOCK_LABEL[reason],

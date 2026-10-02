@@ -2,11 +2,7 @@ import { useState } from 'react';
 import { AppHeader } from '@/shared/components/AppHeader';
 import { formatWon } from '@/shared/utils';
 import { TicketCard } from './TicketCard';
-import type {
-  FirstReviewItem,
-  RestaurantCardData,
-  SearchConditions,
-} from './types';
+import type { RestaurantCardData, SearchConditions } from './types';
 
 /** 접힌 상태에서 요약 행으로 보여줄 나머지 식당 수 — 목업(1c) 기준 ⚠️ 잠정. */
 const COLLAPSED_REST_COUNT = 5;
@@ -79,8 +75,8 @@ type ResultsPageProps = {
   /** 점수순으로 정렬된 조건 통과 식당 전체. 앞의 pickCount 곳이 추천픽. */
   restaurants: RestaurantCardData[];
   pickCount: number;
-  /** 후기가 0개라 판정하지 못한 식당. 하단 별도 구역으로 간다(§6) */
-  firstReview?: FirstReviewItem[];
+  /** 후기가 0개라 판정하지 못한 식당. 하단 별도 구역에 **같은 식권 카드**로 그린다(§6) */
+  firstReview?: RestaurantCardData[];
   /** 하단 구역에서 표시 개수를 넘겨 잘린 수 */
   firstReviewTruncated?: number;
   /** 통과 0곳일 때 보여줄 걸린 조건. 조건을 몰래 완화하지 않는다(§6) */
@@ -207,33 +203,16 @@ export function ResultsPage({
               </h2>
               <span className="text-xs text-content-muted">도보순</span>
             </div>
-            <p className="pb-1 text-xs text-content-muted">
-              가격·단체 정보를 몰라 판정하지 못했어요
-            </p>
-            <ul>
+
+            <div className="flex flex-col gap-3.5 pt-2.5">
               {firstReview.map((r) => (
-                <li
+                <TicketCard
                   key={r.id}
-                  className="flex items-center gap-3 border-b border-border py-3.5"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[15px] font-semibold">
-                      {r.name}
-                    </div>
-                    <div className="mt-1 font-mono text-xs text-content-muted">
-                      {r.category} · 도보 {r.walkMinutes ?? '—'}분
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onFirstReviewClick?.(r.id)}
-                    className="flex-none text-[13px] font-semibold text-brand"
-                  >
-                    첫 후기 쓰기 →
-                  </button>
-                </li>
+                  restaurant={r}
+                  onFirstReviewClick={() => onFirstReviewClick?.(r.id)}
+                />
               ))}
-            </ul>
+            </div>
             {firstReviewTruncated > 0 && (
               <p className="pt-3 font-mono text-xs text-content-muted">
                 가까운 {firstReview.length}곳만 보여줘요 · 조건 안에{' '}

@@ -114,7 +114,9 @@ export function ReviewComposer({
             }
             className="w-full min-w-0 bg-transparent text-right font-mono text-base font-semibold outline-none"
           />
-          <span className="text-xs text-content-muted">원</span>
+          {draft.pricePerPerson !== null && (
+            <span className="text-xs text-content-muted">원</span>
+          )}
         </span>
       </label>
 
@@ -128,7 +130,10 @@ export function ReviewComposer({
             onChange={(e) => patch({ partySize: parseWon(e.target.value) })}
             className="w-full min-w-0 bg-transparent text-right font-mono text-base font-semibold outline-none placeholder:font-sans placeholder:text-xs placeholder:font-normal"
           />
-          <span className="text-xs text-content-muted">명</span>
+          {/* 값이 없을 때 단위를 띄우면 "선택 명" 으로 붙어 읽힌다 */}
+          {draft.partySize !== null && (
+            <span className="text-xs text-content-muted">명</span>
+          )}
         </span>
       </label>
 

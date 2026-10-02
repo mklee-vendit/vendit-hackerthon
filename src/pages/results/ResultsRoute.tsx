@@ -100,7 +100,7 @@ export function ResultsRoute() {
       conditions={view.conditions}
       restaurants={view.restaurants}
       pickCount={view.pickCount}
-      firstReview={view.firstReview}
+      firstReview={view.firstReviewCards}
       firstReviewTruncated={view.firstReviewTruncated}
       blocked={view.blocked}
       unmeasuredWalkCount={view.unmeasuredWalkCount}
