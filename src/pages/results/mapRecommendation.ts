@@ -1,4 +1,5 @@
 import { SITUATION_LABEL } from '@/shared/constants/search';
+import { naverDirectionsUrl } from '@/shared/lib/map/naverDirections';
 import {
   type BlockReason,
   type Candidate,
@@ -81,6 +82,11 @@ export function toCardData(
     unconfirmed: scored.unconfirmed.map((kind) => UNCONFIRMED_LABEL[kind]),
     photoUrl: photoPublicUrl(candidate.photoPath),
     latestReview,
+    directionsUrl: naverDirectionsUrl(
+      candidate.name,
+      candidate.lon,
+      candidate.lat,
+    ),
   };
 }
 
@@ -114,6 +120,11 @@ export function toUnreviewedCardData(candidate: Candidate): RestaurantCardData {
     unconfirmed: [],
     photoUrl: photoPublicUrl(candidate.photoPath),
     latestReview: null,
+    directionsUrl: naverDirectionsUrl(
+      candidate.name,
+      candidate.lon,
+      candidate.lat,
+    ),
   };
 }
 

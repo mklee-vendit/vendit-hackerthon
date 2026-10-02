@@ -30,6 +30,8 @@ const candidate = (over: Partial<Candidate> = {}): Candidate => {
     dietTags: [],
     menu: [],
     photoPath: null,
+    lon: 127.03,
+    lat: 37.5,
     ...over,
   };
 };

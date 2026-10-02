@@ -30,6 +30,8 @@ export type RestaurantCardData = {
   unconfirmed: string[];
   photoUrl?: string;
   latestReview: LatestReview | null;
+  /** 네이버 길찾기 주소. 좌표가 없으면 null 이고, 그때는 **버튼을 그리지 않는다** */
+  directionsUrl: string | null;
 };
 
 export type SearchConditions = {

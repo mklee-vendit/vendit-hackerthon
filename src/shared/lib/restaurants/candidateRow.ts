@@ -29,6 +29,9 @@ export type CandidateRow = {
   }[];
   /** 가장 최근 후기의 첫 사진. 없으면 null — 카드가 회색 사선 자리를 그린다 */
   photo_path: string | null;
+  /** 길찾기 링크용. `restaurants` 에서 not null 이지만 뷰를 거치므로 타입은 열어 둔다 */
+  lon: number | string | null;
+  lat: number | string | null;
   /** 언급이 많은 순 → 최근 순으로 정렬돼 온다. 몇 개를 보여줄지는 화면이 자른다 */
   menu: {
     name: string;
@@ -113,5 +116,7 @@ export function toCandidate(row: CandidateRow): Candidate {
     dietTags,
     menu,
     photoPath: row.photo_path,
+    lon: toNumber(row.lon),
+    lat: toNumber(row.lat),
   };
 }

@@ -36,7 +36,6 @@ type TicketCardProps = {
   restaurant: RestaurantCardData;
   /** 추천픽은 순위 숫자를 브랜드색으로, 나머지는 본문색으로. */
   highlighted?: boolean;
-  onDirectionsClick?: () => void;
   onFirstReviewClick?: () => void;
 };
 
@@ -50,7 +49,6 @@ type TicketCardProps = {
 export function TicketCard({
   restaurant: r,
   highlighted = false,
-  onDirectionsClick,
   onFirstReviewClick,
 }: TicketCardProps) {
   const unreviewed = r.reviewCount === 0;
@@ -106,14 +104,18 @@ export function TicketCard({
               <h3 className="text-lg font-bold tracking-[-0.3px]">{r.name}</h3>
               <span className="text-xs text-content-muted">{r.category}</span>
             </div>
-            <button
-              type="button"
-              aria-label={`${r.name} 네이버 길찾기`}
-              onClick={onDirectionsClick}
-              className="-my-1.5 -mr-1.5 flex size-11 flex-none items-center justify-center rounded-full bg-naver"
-            >
-              <NaverDirectionsIcon />
-            </button>
+            {/* 좌표가 없으면 버튼을 아예 그리지 않는다 — 눌러도 아무 일도 없는 버튼보다 낫다 */}
+            {r.directionsUrl && (
+              <a
+                href={r.directionsUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`${r.name} 네이버 길찾기`}
+                className="-my-1.5 -mr-1.5 flex size-11 flex-none items-center justify-center rounded-full bg-naver"
+              >
+                <NaverDirectionsIcon />
+              </a>
+            )}
           </div>
           {r.unconfirmed.length > 0 && (
             <ul className="mt-2 flex flex-wrap gap-1.5">

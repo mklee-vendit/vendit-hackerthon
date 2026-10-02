@@ -50,6 +50,12 @@ export type Candidate = {
   menu: MenuStat[];
   /** 버킷 안의 사진 경로. 없으면 null — 판정에는 쓰지 않고 화면에만 쓴다 */
   photoPath: string | null;
+  /**
+   * 길찾기 링크에만 쓰는 좌표. **판정에는 쓰지 않는다** — 거리는 실측 도보 시간으로만
+   * 판단하고 좌표로 직선거리를 다시 계산하지 않는다(§7).
+   */
+  lon: number | null;
+  lat: number | null;
 };
 
 export type SearchCriteria = {
