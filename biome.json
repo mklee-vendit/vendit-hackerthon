@@ -40,6 +40,18 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ],
   "css": {
     "parser": { "tailwindDirectives": true }
   },
