@@ -144,7 +144,12 @@ const menus = results.flatMap((r) =>
     price_text: m.priceText,
   })),
 );
-const json = (v: unknown) => `$naver$${JSON.stringify(v)}$naver$`;
+// 메뉴명은 남이 쓴 글이다 — 구분자가 섞이면 SQL 밖으로 새므로 그 자리에서 멈춘다.
+const json = (v: unknown) => {
+  const body = JSON.stringify(v);
+  if (body.includes('$naver$')) throw new Error('데이터에 $naver$ 가 있습니다');
+  return `$naver$${body}$naver$`;
+};
 
 writeFileSync(
   OUT,
